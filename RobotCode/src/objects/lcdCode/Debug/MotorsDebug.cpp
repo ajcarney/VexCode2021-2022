@@ -69,16 +69,16 @@ MotorsDebugTab::MotorsDebugTab( std::vector<Motor*> motors_vec, std::vector<std:
     lv_obj_set_height(motor2_label, 20);
     lv_label_set_align(motor2_label, LV_LABEL_ALIGN_CENTER);
     lv_label_set_text(motor2_label, "");
-    
+
     motor2_info = lv_label_create(container, NULL);
     lv_obj_set_style(motor2_info, &toggle_tabbtn_pressed);
     lv_obj_set_width(motor2_info, (MOTORS_CONTAINER_WIDTH/2));
     lv_obj_set_height(motor2_info, 20);
     lv_label_set_align(motor2_info, LV_LABEL_ALIGN_LEFT);
     lv_label_set_text(motor2_info, "None");
-    
-    
-    
+
+
+
     if( motors.size() > 1 )
     {
         lv_label_set_text(motor2_label, titles.at(1).c_str());
@@ -100,7 +100,7 @@ MotorsDebugTab::~MotorsDebugTab()
     lv_obj_del(motor1_info);
     lv_obj_del(motor2_label);
     lv_obj_del(motor2_info);
-    
+
     lv_obj_del(container);
 }
 
@@ -198,8 +198,8 @@ MotorsDebug::MotorsDebug()
 //init tabs
     l_chassis_tab = lv_tabview_add_tab(tabview, "Chassis (L)");
     r_chassis_tab = lv_tabview_add_tab(tabview, "Chassis (R)");
-    main_intake_tab = lv_tabview_add_tab(tabview, "Main Intake");
-    front_intake_tab = lv_tabview_add_tab(tabview, "Front Intakes");
+    mogo_tab = lv_tabview_add_tab(tabview, "Mogo");
+    lift_tab = lv_tabview_add_tab(tabview, "Lift");
 
 //init back button
     //button
@@ -318,8 +318,8 @@ MotorsDebug::~MotorsDebug()
 
     lv_obj_del(l_chassis_tab);
     lv_obj_del(r_chassis_tab);
-    lv_obj_del(main_intake_tab);
-    lv_obj_del(front_intake_tab);
+    lv_obj_del(mogo_tab);
+    lv_obj_del(lift_tab);
     lv_obj_del(tabview);
 
     lv_obj_del(velocity_label);
@@ -510,8 +510,8 @@ void MotorsDebug::debug()
 
     MotorsDebugTab l_chassis_tab_debug( {&Motors::front_left, &Motors::back_left}, {"Front Left", "Back Left"}, l_chassis_tab );
     MotorsDebugTab r_chassis_tab_debug( {&Motors::front_right, &Motors::back_right}, {"Front Right", "Back Right"}, r_chassis_tab );
-    MotorsDebugTab main_intake_tab_debug( {&Motors::upper_indexer, &Motors::lower_indexer}, {"upper_indexer", "lower_indexer"}, main_intake_tab );
-    MotorsDebugTab front_intake_tab_debug( {&Motors::left_intake, &Motors::right_intake}, {"Left Intake", "Right Intake"}, front_intake_tab );
+    MotorsDebugTab mogo_tab_debug( {&Motors::lift}, {"mogo"}, mogo_tab );
+    MotorsDebugTab lift_tab_debug( {&Motors::mogo_lift}, {"lift"}, lift_tab );
 
     while ( cont )
     {
@@ -525,15 +525,15 @@ void MotorsDebug::debug()
                 r_chassis_tab_debug.update_label(target_velocity, velocity_label);
                 break;
             case 2:
-                main_intake_tab_debug.update_label(target_velocity, velocity_label);
+                mogo_tab_debug.update_label(target_velocity, velocity_label);
                 break;
             case 3:
-                front_intake_tab_debug.update_label(target_velocity, velocity_label);
+                lift_tab_debug.update_label(target_velocity, velocity_label);
                 break;
 
         }
 
-        
+
         Motors::set_brake_mode(current_brake_mode);
 
 

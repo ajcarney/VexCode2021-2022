@@ -24,16 +24,19 @@ namespace Motors
     extern Motor front_left;
     extern Motor back_right;
     extern Motor back_left;
-    extern Motor left_intake;
-    extern Motor right_intake;
-    extern Motor upper_indexer;
-    extern Motor lower_indexer;
-    
+    extern Motor mid_right;
+    extern Motor mid_left;
+    extern Motor lift;
+    extern Motor mogo_lift;
+
+    extern pros::ADIDigitalOut piston1;
+    extern pros::ADIDigitalOut piston2;
+
     extern double chassis_gear_ratio;
-    
+
     extern std::array<Motor*, 8> motor_array;
     extern std::array<std::string, 8> motor_names_array;
-    
+
     void enable_driver_control();
     void disable_driver_control();
     void set_brake_mode(pros::motor_brake_mode_e_t new_brakemode);

@@ -12,29 +12,26 @@
 
 #include "main.h"
 
-#include "BallDetector.hpp"
 #include "Encoder.hpp"
 #include "AnalogInSensor.hpp"
 #include "RGBLed.hpp"
 
 
 
-namespace Sensors 
+namespace Sensors
 {
     extern Encoder right_encoder;
     extern Encoder left_encoder;
     extern Encoder strafe_encoder;
-    
+
     extern pros::ADIDigitalIn r_limit_switch;
     extern pros::ADIDigitalIn l_limit_switch;
-    
-    extern BallDetector ball_detector;
-    
+
     extern pros::Imu imu;
     extern bool imu_is_calibrated;
-    
+
     extern RGBLedString rgb_leds;
-    
+
     void calibrate_imu();
     void log_data();
     std::tuple<double, double> get_average_encoders(int l_id, int r_id);

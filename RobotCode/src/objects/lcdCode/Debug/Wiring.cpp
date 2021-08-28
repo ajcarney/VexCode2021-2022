@@ -23,8 +23,6 @@ bool Wiring::cont = true;
 
 Wiring::Wiring()
 {
-    Configuration* config = Configuration::get_instance();
-    
     cont = true;
 
 //screen
@@ -61,14 +59,14 @@ Wiring::Wiring()
     lv_label_set_align(motor_info, LV_LABEL_ALIGN_LEFT);
 
     std::string motors_text = (
-            "front right     (200 RPM) - " + std::to_string(config->front_right_port) + "\n"
-            "back right      (200 RPM) - " + std::to_string(config->back_left_port) + "\n"
-            "front left      (200 RPM) - " + std::to_string(config->front_left_port) + "\n"
-            "back left       (200 RPM) - " + std::to_string(config->back_right_port) + "\n"
-            "left intake     (600 RPM) - " + std::to_string(config->left_intake_port) + "\n"
-            "right intake    (600 RPM) - " + std::to_string(config->right_intake_port) + "\n"
-            "upper_indexer   (600 RPM) - " + std::to_string(config->upper_indexer_port) + "\n"
-            "lower_indexer   (600 RPM) - " + std::to_string(config->lower_indexer_port) + "\n"
+            "back right      (? RPM) - " + std::to_string(BR_MOTOR) + "\n"
+            "mid right       (? RPM) - " + std::to_string(MR_MOTOR) + "\n"
+            "front right     (? RPM) - " + std::to_string(FR_MOTOR) + "\n"
+            "back left       (? RPM) - " + std::to_string(BL_MOTOR) + "\n"
+            "mid left        (? RPM) - " + std::to_string(ML_MOTOR) + "\n"
+            "front left      (? RPM) - " + std::to_string(FL_MOTOR) + "\n"
+            "mogo            (? RPM) - " + std::to_string(MOGO_MOTOR) + "\n"
+            "lift            (? RPM) - " + std::to_string(LIFT_MOTOR) + "\n"
     );
 
     lv_label_set_text(motor_info, motors_text.c_str());

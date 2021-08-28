@@ -109,8 +109,8 @@ class MotorsDebug : virtual Styles
 
         lv_obj_t *l_chassis_tab;    //individual tabs
         lv_obj_t *r_chassis_tab;    //content will come from base classes
-        lv_obj_t *main_intake_tab;
-        lv_obj_t *front_intake_tab;
+        lv_obj_t *mogo_tab;
+        lv_obj_t *lift_tab;
 
         static uint16_t tab_loaded;  // 0 = left chassis
                                      // 1 = right chassis

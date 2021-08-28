@@ -20,19 +20,14 @@ namespace Sensors
     Encoder right_encoder{RIGHT_ENC_TOP_PORT, RIGHT_ENC_BOTTOM_PORT, false};
     Encoder left_encoder{LEFT_ENC_TOP_PORT, LEFT_ENC_BOTTOM_PORT, false};
     Encoder strafe_encoder{STRAFE_ENC_TOP_PORT, STRAFE_ENC_BOTTOM_PORT, true};
-    
+
     pros::ADIDigitalIn r_limit_switch{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'E')};
     pros::ADIDigitalIn l_limit_switch{'D'};
-    
-    BallDetector ball_detector{
-        OPTICAL_PORT,
-        DISTANCE_PORT,
-        Configuration::get_instance()->filter_threshold
-    };
-    
+
+
     pros::Imu imu{IMU_PORT};
     bool imu_is_calibrated = false;
-    
+
     RGBLedString rgb_leds{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'A'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'B'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'C')};
 
 
@@ -55,14 +50,11 @@ namespace Sensors
             + ", Sensor Data"
             +  ", Right_Enc: " + std::to_string(right_encoder.get_absolute_position(false))
             +  ", Left_Enc: " + std::to_string(left_encoder.get_absolute_position(false))
-            +  ", Top Detector" + std::to_string(ball_detector.locate_balls().at(0))
-            +  ", Middle Detector" + std::to_string(ball_detector.locate_balls().at(1))
-            +  ", Bottom Detector" + std::to_string(ball_detector.locate_balls().at(2))
         );
         entry.stream = "clog";
         logger.add(entry);
     }
-    
+
     /**
      * takes the average of each side of the drive encoders
      * hopefully to reduce error of encoders

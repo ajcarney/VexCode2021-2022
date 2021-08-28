@@ -16,8 +16,6 @@
 #include "objects/serial/Logger.hpp"
 #include "objects/serial/Server.hpp"
 #include "objects/subsystems/chassis.hpp"
-#include "objects/subsystems/Indexer.hpp"
-#include "objects/subsystems/intakes.hpp"
 #include "objects/sensors/RGBLed.hpp"
 
 
@@ -35,18 +33,14 @@
     MotorThread::get_instance()->start_thread();
 
     pros::delay(100); //wait for terminal to start and lvgl
-    Configuration* config = Configuration::get_instance();
-    config->init();
-    config->print_config_options();
 
     int final_auton_choice = chooseAuton();
     Autons auton;
-    config->filter_color = auton.AUTONOMOUS_COLORS.at(final_auton_choice);
     auton.set_autonomous_number(final_auton_choice);
 
     Sensors::calibrate_imu();
-    
-    
+
+
     // std::cout << OptionsScreen::cnfg.use_hardcoded << '\n';
     // std::cout << OptionsScreen::cnfg.gyro_turn << '\n';
     // std::cout << OptionsScreen::cnfg.accelleration_ctrl << '\n';
@@ -107,13 +101,12 @@ void autonomous() {
  {
      Logger logger;
      Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
-     
-     Configuration* config = Configuration::get_instance();
-     double kP = config->chassis_pid.kP;
-     double kI = config->chassis_pid.kI;
-     double kD = config->chassis_pid.kD;
-     double I_max = config->chassis_pid.I_max;
-     
+
+     double kP = Configuration::chassis_pid.kP;
+     double kI = Configuration::chassis_pid.kI;
+     double kD = Configuration::chassis_pid.kD;
+     double I_max = Configuration::chassis_pid.I_max;
+
      int l_id = Sensors::left_encoder.get_unique_id();
      int r_id = Sensors::right_encoder.get_unique_id();
      // double prev_l_encoder = std::get<0>(chassis.get_average_encoders(l_id, r_id));
@@ -121,7 +114,7 @@ void autonomous() {
      // double intitial_angle = Sensors::imu.get_heading();
      // double prev_angle = Sensors::imu.get_heading();
      // double relative_angle = 0;
-     // 
+     //
      while ( 1 )
      {
          // double delta_l = std::get<0>(chassis.get_average_encoders(l_id, r_id)) - prev_l_encoder;
@@ -129,7 +122,7 @@ void autonomous() {
          // double delta_theta = chassis.calc_delta_theta(prev_angle, delta_l, delta_r);
          // prev_angle = prev_angle + delta_theta;
          // relative_angle = relative_angle + delta_theta;
-         // 
+         //
 
          std::string msg = (
              "[INFO] " + std::string("CHASSIS_PID ")
@@ -148,7 +141,7 @@ void autonomous() {
              + ", Time: " + std::to_string(pros::millis())
              + ", Position_Sp: " + std::to_string(1269.32)
              + ", position_l: " + std::to_string(Sensors::left_encoder.get_position(l_id))
-             + ", position_r: " + std::to_string(Sensors::right_encoder.get_position(r_id))                
+             + ", position_r: " + std::to_string(Sensors::right_encoder.get_position(r_id))
              + ", Heading_Sp: " + std::to_string(0)
              + ", Relative_Heading: " + std::to_string(0)
              + ", Actual_Vel1: " + std::to_string(Motors::front_left.get_actual_velocity())
@@ -189,63 +182,11 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-     // pros::ADIAnalogIn l1 (1);
-     // pros::ADIAnalogIn l2 (2);
-     // pros::ADIAnalogIn l3 (3);
-     // while(1) {
-     //     std::cout << l1.get_value() << " " << l2.get_value() << " " << l3.get_value() << "\n";
-     //     pros::delay(50);
-     // }
-    // Logger logger;
-    // pros::ADIDigitalIn limit_switch('A');
-    
-    
-    // pros::Task write_task (log_thread_fn,
-    //                       (void*)NULL,
-    //                       TASK_PRIORITY_DEFAULT,
-    //                       TASK_STACK_DEPTH_DEFAULT,
-    //                       "logger_thread");
-
-
-
     Server server;
     server.clear_stdin();
     server.start_server();
     server.set_debug_mode(true);
 
-     // int stop = pros::millis() + 8000;
-     //
-     // Lift lift(Motors::lift, {0, 800});
-     // while ( pros::millis() < stop )
-     // {
-     //     lift.move_to(900, false, true);
-     //     pros::delay(10);
-     // }
-     // stop = pros::millis() + 2000;
-     // while ( pros::millis() < stop )
-     // {
-     //     lift.move_to(0, false, true);
-     //     pros::delay(10);
-     // }
-     // logger.dump();
-     // logger.dump();
-     // logger.dump();
-     // logger.dump();
-     // logger.dump();
-     // logger.dump();
-     // logger.dump();
-     // logger.dump();
-     //
-     // Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, 12.4 );
-     // int stop = pros::millis() + 8000;
-     //
-     // chassis.turn_left(13, 12000, INT32_MAX, true, false, true);
-     //
-     // while ( pros::millis() < stop )
-     // {
-     //     chassis.turn_left(13, 12000, INT32_MAX, false, false, true );
-     //     pros::delay(10);
-     // }
 
     std::cout << "opcontrol started\n";
 
@@ -268,159 +209,24 @@ void opcontrol() {
 
 
     Controller controllers;
-    // while(1) {
-    //     Motors::left_intake.user_move(controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
-    //     Motors::right_intake.user_move(controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
-    //     std::cout << Motors::left_intake.get_torque() << " " << Motors::left_intake.get_efficiency() << " " << Motors::left_intake.get_actual_voltage() << "\n";
-    //     std::cout << Motors::right_intake.get_torque() << " " << Motors::right_intake.get_efficiency() << " " << Motors::right_intake.get_actual_voltage() << "\n";
-    //     std::cout << "\n";
-    //     pros::delay(10);
-    // }
-
-
-     // Motors motors;
-     // Motors::record_macro();
-     //
-     // Writer writer;
-     // while( writer.get_count() > 0 )
-     // {
-     //     std::cout << pros::millis() << " " << writer.get_count() << "\n";
-     //     pros::delay(1);
-     // }
-     //
-     // std::cout << "done\n";
-
-     //update controller with color of cube and if it is loaded or not
-     
-    // Controller controllers;
-    // std::string controller_text = "no cube loaded";
-    // std::string prev_controller_text = "";
-    
-    // PositionTracker* tracker = PositionTracker::get_instance();
-    // tracker->start_thread();
-    // std::cout << pros::Task::get_count() << "\n";
-    // Chassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, Sensors::imu, 12.75, 5/3, 3.25);
     DriverControlLCD lcd;
-    // lcd.update_labels();
-    // chassis.generate_profiles();
-    
-    
-    // chassis.turn_left(90);  // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_right(90); // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_left(45); // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_right(45); // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_left(30); // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_right(30); // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_left(10); // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_right(10); // passing
-    // pros::delay(1000);
-    
-    // chassis.turn_right(270); // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_left(270); // passing
-    // pros::delay(1000);
-    // 
 
-    // chassis.turn_to_angle(90);  // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_to_angle(270);  // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_to_angle(0);  // passing
-    // pros::delay(1000);
-    // 
-    // chassis.turn_to_angle(-90);  // passing
-    // pros::delay(1000);
-    
-    // chassis.turn_to_point(36, 0);  // passing
-    // pros::delay(1000);
-    // chassis.turn_to_point(-36, 0);  // passing
-    // pros::delay(1000);
-    // chassis.turn_to_point(0, 36);  // passing
-    // pros::delay(1000);
-    // chassis.turn_to_point(-36, -36);  // passing
-    
-    // chassis.drive_to_point(0, 36);  // passing
-    // pros::delay(1000);
-    // chassis.drive_to_point(36, 36);  // passing
-    // pros::delay(1000);
-    // chassis.drive_to_point(36, 0);  // passing
-    // pros::delay(1000);
-    // chassis.drive_to_point(0, 0);  // passing
-
-    // tracker->stop_logging();
-    // lcd.update_labels();
-    // Indexer indexer(Motors::upper_indexer, Motors::lower_indexer, Sensors::ball_detector, "blue");    
-    // Intakes intakes(Motors::left_intake, Motors::right_intake);
     Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     PositionTracker* tracker = PositionTracker::get_instance();
     tracker->enable_imu();
     tracker->start_thread();
-    
-    
-    // chassis.okapi_pid_straight_drive(500);
-    // chassis.okapi_pid_straight_drive(-500);
-    // 
-    // while(1) {
-    //     int uid = chassis.pid_straight_drive(INT32_MAX, 0, 25, 1000, true);
-    //     while(!chassis.is_finished(uid)) {
-    //         // indexer.auto_increment();
-    //         // intakes.intake();
-    //         pros::delay(10);
-    //     }    
-    // }
-    // chassis.turn_left(90);
+
+
     Autons autons;
     // autons.run_autonomous();
     // autons.skills2();
-    
-    // gather data from position tracker
-    // tracker->start_logging();
-    // while(1) {  
-    //     pros::delay(10);
-    // }
-    
+
     pros::Task driver_control_task (driver_control,
                                     (void*)NULL,
                                     TASK_PRIORITY_DEFAULT,
                                     TASK_STACK_DEPTH_DEFAULT,
                                     "DriverControlTask");
 
-    
-    
-    // double prev_angle = std::fmod(Sensors::imu.get_heading() + 360, 360);
-    // double ref_angle = std::fmod(Sensors::imu.get_heading() + 360, 360);
-    int l_id = Sensors::left_encoder.get_unique_id();
-    int r_id = Sensors::right_encoder.get_unique_id();
-    int s_id = Sensors::strafe_encoder.get_unique_id();
-    // double prev_l = Sensors::left_encoder.get_position(l_id);
-    // double prev_r = Sensors::right_encoder.get_position(r_id);
-    // pros::delay(1);
-    // chassis.straight_drive(-1000, 0, 12000, 10000);
-    // Sensors::ball_detector.start_logging();
-    // Logger::stop_queueing();
-    // pros::ADIMotor red(pros::ext_adi_port_pair_t('A', 4));
-    // pros::ADIMotor blue(pros::ext_adi_port_pair_t(4, 'B'));
-    // pros::ADIMotor green(pros::ext_adi_port_pair_t(4, 'H'));
-    // blue.set_value(0);
-    // red.set_value(0);
-    // green.set_value(0);
     int i = 0;
     uint8_t sins[360] = {
       127,129,131,134,136,138,140,143,145,147,149,151,154,156,158,160,162,164,166,169,171,173,175,177,179,181,183,185,187,189,191,193,195,196,198,200,
@@ -434,10 +240,10 @@ void opcontrol() {
       6,6,7,8,9,10,11,11,12,13,14,15,17,18,19,20,21,23,24,25,27,28,29,31,32,34,35,37,38,40,42,43,45,47,49,50,
       52,54,56,58,59,61,63,65,67,69,71,73,75,77,79,81,83,85,88,90,92,94,96,98,100,103,105,107,109,111,114,116,118,120,123,125
     };
-  
+
     pros::ADIDigitalIn limit_switch(pros::ext_adi_port_pair_t(EXPANDER_PORT, 'D'));
     int mode = 1;
-    
+
     int r = 0;
     int g = 0;
     int b = 0;
@@ -451,7 +257,7 @@ void opcontrol() {
             g = 0;
             b = 0;
         }
-        
+
         switch(mode) {
             case 0: {  // rainbow cycle
                 if(r > 255){
@@ -470,11 +276,11 @@ void opcontrol() {
                 i += 1;
                 Sensors::rgb_leds.set_color(sins[i], sins[(i+120)%360], sins[(i+240)%360]);
                 break;
-                
+
             } case 1: {  // solid green
                 Sensors::rgb_leds.set_color(0, 255, 0);
                 break;
-                
+
             } case 2: {  // off
                 Sensors::rgb_leds.set_color(0, 0, 0);
                 break;
@@ -483,13 +289,13 @@ void opcontrol() {
 
         // Sensors::rgb_leds.set_color(sins[i], sins[(i+120)%360], sins[(i+240)%360]);
         // print encoder values
-        
+
         // std::cout << "r: " << Sensors::right_encoder.get_position(r_id) << " | l: " << Sensors::left_encoder.get_position(l_id) << " | s: " << Sensors::strafe_encoder.get_position(s_id) << "\n";
         // double delta_theta = chassis.calc_delta_theta(prev_angle, ref_angle, Sensors::left_encoder.get_position(l_id) - prev_l, Sensors::right_encoder.get_position(r_id) - prev_r);
         // prev_angle = prev_angle + delta_theta;
         // prev_l = Sensors::left_encoder.get_position(l_id);
         // prev_r = Sensors::right_encoder.get_position(r_id);
-        // 
+        //
         // std::cout << "delta theta: " << delta_theta << "  |  new angle: " << prev_angle << "\n";
         // std::cout << tracker->get_position().x_pos << " " << tracker->get_position().y_pos << " " << tracker->to_degrees(tracker->get_position().theta) << "\n";
         lcd.update_labels();

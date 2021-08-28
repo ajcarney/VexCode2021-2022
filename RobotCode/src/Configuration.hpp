@@ -4,8 +4,25 @@
  * @reviewed_on:
  * @reviewed_by:
  *
- * contains class static variables for runtime configuration
+ * contains class static variables for runtime and compile time configuration
  *
+ * Set motor port, reversed, and gearset in this file
+ * Set chassis width and gear ratio in this file (VERY IMPORTANT for position tracking and calculating the heading if not using imu)
+ * Set sensor ports in this file
+ *
+ * WARNING:  IF YOU MODIFY THIS FILE ...
+ *
+ * BEWARE ... modifying this file can greatly increase your compile time (get it right the first time)
+ *        you could try to fix this by going through each file in the project and deleting the line #include /.../Configuration.hpp
+ *        somewhere near the top and seeing if the project still builds. I'm not going to do this because that is a boring and tedious process.
+ *        You could also fix up the other include statements as well (if you get bored).
+ *
+ *        YOU WILL PROBABLY WANT TO DO THIS BEFORE TUNING PID LOOPS
+ *
+ * if you modify this file or any other *.hpp file you should run a prosv5 make all instead of
+ * just the prosv5 make (doing this will occasionally help fix some wierd bugs)
+ *
+ * END WARNING
  */
 
 #ifndef __CONFIGURATION_HPP__
@@ -18,6 +35,29 @@
 
 #include "../lib/json.hpp"
 
+#define BR_MOTOR                  1
+#define MR_MOTOR                  2
+#define FR_MOTOR                  3
+#define BL_MOTOR                  4
+#define ML_MOTOR                  5
+#define FL_MOTOR                  6
+#define MOGO_MOTOR                7
+#define LIFT_MOTOR                8
+
+#define BR_REVERSED               0
+#define MR_REVERSED               0
+#define FR_REVERSED               0
+#define BL_REVERSED               0
+#define ML_REVERSED               0
+#define FL_REVERSED               0
+#define MOGO_REVERSED             0
+#define LIFT_REVERSED             0
+
+
+// @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges
+#define CHASSIS_GEARSET           pros::E_MOTOR_GEARSET_06
+#define LIFT_GEARSET              pros::E_MOTOR_GEARSET_06
+#define MOGO_GEARSET              pros::E_MOTOR_GEARSET_06
 
 #define LEFT_ENC_TOP_PORT        'G'
 #define LEFT_ENC_BOTTOM_PORT     'H'
@@ -36,6 +76,11 @@
 #define IMU_PORT                 10
 #define EXPANDER_PORT             4
 
+#define CHASSIS_WIDTH            16
+#define CHASSIS_GEAR_RATIO      5/3
+
+#define LIFT_SETPOINTS  1, 2, 3
+#define MOGO_SETPOINTS  1, 2, 3
 
 typedef struct
 {
@@ -52,86 +97,14 @@ typedef struct
 } pid;
 
 
-
-/**
- * @see: ../lib/json.hpp
- *
- * Singleton class
- * contains class to read data from config file on sd card for better runtime config
- * useful so that a clean build is not always necessary
- * contains static variables used throughout rest of project
- */
-class Configuration
-{
-    private:
-        Configuration();
-        static Configuration *config_obj;
-
+class Configuration {
     public:
-        ~Configuration();
+        static constexpr pid internal_motor_pid {1, 0, 0, INT32_MAX};  // see above struct for parameter order
+        static constexpr pid lift_pid {1, 0, 0, INT32_MAX};
+        static constexpr pid chassis_pid {1, 0, 0, INT32_MAX};
 
-        /**
-         * @return: Configuration -> instance of class to be used throughout program
-         *
-         * give user the instance of the singleton class or creates it if it does
-         * not yet exist
-         */
-        static Configuration* get_instance();
-
-        pid internal_motor_pid;
-        pid lift_pid;
-        pid chassis_pid;
-
-        int front_right_port;
-        int back_left_port;
-        int front_left_port;
-        int back_right_port;
-        int left_intake_port;
-        int right_intake_port;
-        int upper_indexer_port;
-        int lower_indexer_port;
-
-        bool front_right_reversed;
-        bool back_left_reversed;
-        bool front_left_reversed;
-        bool back_right_reversed;
-        bool left_intake_reversed;
-        bool right_intake_reversed;
-        bool upper_indexer_reversed;
-        bool lower_indexer_reversed;
-
-        std::vector<int> lift_setpoints;
-        std::vector<int> tilter_setpoints;
-        std::vector<int> intake_speeds;
-
-        int filter_threshold;
-        std::string filter_color;  // color to remove
-
-
-        /**
-         * @return: int -> 1 if file was successfully read, 0 if no changes were made
-         *
-         * @see: ../lib/json.hpp
-         *
-         * parses json file looking for data to set variables to
-         */
-        int init();
-
-
-        /**
-         * @return: None
-         *
-         * @see: typedef struct pid
-         *
-         * prints all the variables in the class
-         * used for debugging to make sure values are what they are
-         * supposed to be
-         */
-        void print_config_options();
-
+        static constexpr int lift_setpoints[] = {};
+        static constexpr int mogo_setpoints[] = {};
 };
-
-
-
 
 #endif

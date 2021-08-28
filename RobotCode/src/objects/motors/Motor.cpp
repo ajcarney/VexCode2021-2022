@@ -7,7 +7,7 @@
  *
  * contains a implementation for wrapper class for a pros::Motor
  */
- 
+
 #include <atomic>
 
 #include "main.h"
@@ -22,32 +22,31 @@ Motor::Motor( int port, pros::motor_gearset_e_t gearset, bool reversed )
 {
     lock = ATOMIC_VAR_INIT(false);
     allow_driver_control = true;
-    
+
     while ( lock.exchange( true ) ); //aquire motor lock
-    
+
     motor_port = port;
-    
+
     motor = new pros::Motor(port, gearset, reversed, pros::E_MOTOR_ENCODER_DEGREES);
-        
+
     prev_velocity = 0;
-    
+
     log_level = 0;
-    
+
     slew_enabled = false;  // default slew rate to false
     slew_rate = 30;  //approx. 5% voltage per 20ms == 400ms to reach full voltage
-    
+
     prev_voltage_setpoint = 0;
     voltage_setpoint = 0;
     velocity_setpoint = 0;
-    
-    Configuration *configuration = Configuration::get_instance();
-    internal_motor_pid.kP = configuration->internal_motor_pid.kP;
-    internal_motor_pid.kI = configuration->internal_motor_pid.kI;
-    internal_motor_pid.kD = configuration->internal_motor_pid.kD;
-    internal_motor_pid.I_max = configuration->internal_motor_pid.I_max;
+
+    internal_motor_pid.kP = Configuration::internal_motor_pid.kP;
+    internal_motor_pid.kI = Configuration::internal_motor_pid.kI;
+    internal_motor_pid.kD = Configuration::internal_motor_pid.kD;
+    internal_motor_pid.I_max = Configuration::internal_motor_pid.I_max;
     integral = 0;
     prev_error = 0;
-    
+
     lock.exchange(false);
 }
 
@@ -56,31 +55,31 @@ Motor::Motor(int port, pros::motor_gearset_e_t gearset, bool reversed, pid pid_c
 {
     lock = ATOMIC_VAR_INIT(false);
     allow_driver_control = true;
-    
+
     while ( lock.exchange( true ) ); //aquire motor lock
-    
+
     motor_port = port;
-    
+
     motor = new pros::Motor(port, gearset, reversed, pros::E_MOTOR_ENCODER_DEGREES);
-        
+
     prev_velocity = 0;
-    
-    log_level = 0; 
-    
+
+    log_level = 0;
+
     slew_enabled = false;
     slew_rate = 30;  //approx. 5% voltage per 20ms == 400ms to reach full voltage
-    
+
     prev_voltage_setpoint = 0;
     voltage_setpoint = 0;
     velocity_setpoint = 0;
-    
+
     internal_motor_pid.kP = pid_consts.kP;
     internal_motor_pid.kI = pid_consts.kI;
     internal_motor_pid.kD = pid_consts.kD;
     internal_motor_pid.I_max = pid_consts.I_max;
     integral = 0;
     prev_error = 0;
-    
+
     lock.exchange(false);
 }
 
@@ -94,10 +93,10 @@ Motor::~Motor( )
 
 int Motor::to_voltage(int velocity) {
     pros::motor_gearset_e_t gearset = motor->get_gearing();
-    
+
     int prev_max;
     int prev_min;
-    
+
     if ( gearset == pros::E_MOTOR_GEARSET_36 )  //100 RPM Motor
     {
         prev_max = 120;
@@ -113,12 +112,12 @@ int Motor::to_voltage(int velocity) {
         prev_max = 240;
         prev_min = -240;
     }
-    
+
     int new_max = 12000;
     int new_min = -12000;
-    
+
     int voltage = (((velocity - prev_min) * (new_max - new_min)) / (prev_max - prev_min)) + new_min;
-    
+
     return voltage;
 }
 
@@ -126,12 +125,12 @@ int Motor::to_voltage(int velocity) {
 int Motor::to_velocity(int voltage) {
     int prev_max = 12000;
     int prev_min = -12000;
-    
+
     pros::motor_gearset_e_t gearset = motor->get_gearing();
-    
+
     int new_max;
     int new_min;
-    
+
     if ( gearset == pros::E_MOTOR_GEARSET_36 )  //100 RPM Motor
     {
         new_max = 120;
@@ -147,9 +146,9 @@ int Motor::to_velocity(int voltage) {
         new_max = 240;
         new_min = -240;
     }
-    
+
     int velocity = (((voltage - prev_min) * (new_max - new_min)) / (prev_max - prev_min)) + new_min;
-    
+
 
     return velocity;
 }
@@ -176,7 +175,7 @@ int Motor::calc_target_rate( int target, int previous, int delta_t)
     {
         rate = delta_v / delta_t;
     }
-    
+
     return rate;
 }
 
@@ -186,12 +185,12 @@ int Motor::calc_target_rate( int target, int previous, int delta_t)
  * calculations on it
  */
 int Motor::get_target_voltage( int delta_t )
-{    
+{
     double kP = internal_motor_pid.kP;
     double kI = internal_motor_pid.kI;
     double kD = internal_motor_pid.kD;
     double I_max = internal_motor_pid.I_max;
-    
+
     int voltage;
     int calculated_target_voltage = voltage_setpoint;
 
@@ -203,28 +202,28 @@ int Motor::get_target_voltage( int delta_t )
         {
             integral = 0;
         }
-        else 
+        else
         {
             integral = integral + error;
         }
         double derivative = error - prev_error;
         prev_error = error;
-        
-        
-        calculated_target_voltage = (kP * error) + (kI * integral) + (kD * derivative);        
-    } 
-    
+
+
+        calculated_target_voltage = (kP * error) + (kI * integral) + (kD * derivative);
+    }
+
     //ensure that voltage range is allowed by the slew rate set
     int rate = calc_target_rate(calculated_target_voltage, get_actual_voltage(), delta_t);
     if ( slew_enabled && std::abs(rate) > slew_rate )
     {
         int max_delta_v = slew_rate * delta_t;
         int polarity = 1;                // rate will be positive or negative if motor is gaining
-        if ( rate < 0 )                  // or losing velocity 
+        if ( rate < 0 )                  // or losing velocity
         {                                // the polarity ensures that the max voltage is added
-            polarity = -1;               // in the correct direction so that the motor's velocity 
+            polarity = -1;               // in the correct direction so that the motor's velocity
         }                                // will increase in the correct direction
-        
+
         voltage = get_actual_voltage() + (polarity * max_delta_v);
     }
     else if ( voltage_setpoint == 0 )
@@ -237,8 +236,8 @@ int Motor::get_target_voltage( int delta_t )
     }
 
     prev_voltage_setpoint = voltage_setpoint;
-    
-    
+
+
     return voltage;
 }
 
@@ -394,19 +393,19 @@ int Motor::is_reversed( )
 
 
 
-//setter functions 
+//setter functions
 
 /**
  * aquires lock and creates a new motor on a different port
  * exception safe to always release lock
- */       
+ */
 int Motor::set_port( int port )
 {
     pros::motor_gearset_e_t gearset = motor->get_gearing();
     bool reversed = motor->is_reversed();
-    
+
     while ( lock.exchange( true ) );
-    
+
     try
     {
         delete motor;
@@ -420,11 +419,11 @@ int Motor::set_port( int port )
         entry.content = "[ERROR], " + std::to_string(pros::millis()) + ", could not set port on motor port " + std::to_string(motor_port);
         entry.stream = "cerr";
         logger.add(entry);
-        
+
         lock.exchange(false);
         return 0;
     }
-    
+
     lock.exchange(false);
     return 1;
 }
@@ -433,11 +432,11 @@ int Motor::set_port( int port )
 /**
  * aquires lock and sets zero position of motor
  * exception safe to always release lock
- */       
+ */
 int Motor::tare_encoder( )
 {
     while ( lock.exchange( true ) );
-    
+
     try
     {
         motor->tare_position();
@@ -449,13 +448,13 @@ int Motor::tare_encoder( )
         entry.content = "[ERROR], " + std::to_string(pros::millis()) + ", could not tare encoder on motor port " + std::to_string(motor_port);
         entry.stream = "cerr";
         logger.add(entry);
-        
+
         lock.exchange(false);
         return 0;
     }
-    
+
     lock.exchange(false);
-    
+
     return 1;
 }
 
@@ -463,12 +462,12 @@ int Motor::tare_encoder( )
 /**
  * aquires lock and sets new brake mode for motor
  * exception safe to always release lock
- */       
+ */
 int Motor::set_brake_mode( pros::motor_brake_mode_e_t brake_mode )
 {
     while ( lock.exchange( true ) );
-    
-    try 
+
+    try
     {
         motor->set_brake_mode(brake_mode);
     }
@@ -479,13 +478,13 @@ int Motor::set_brake_mode( pros::motor_brake_mode_e_t brake_mode )
         entry.content = "[ERROR], " + std::to_string(pros::millis()) + ", could not set brakemode on motor port " + std::to_string(motor_port);
         entry.stream = "cerr";
         logger.add(entry);
-        
+
         lock.exchange(false);
         return 0;
     }
-    
+
     lock.exchange(false);
-    
+
     return 1;
 }
 
@@ -493,12 +492,12 @@ int Motor::set_brake_mode( pros::motor_brake_mode_e_t brake_mode )
 /**
  * aquires lock and sets new gearing for motor
  * exception safe to always release lock
- */       
+ */
 int Motor::set_gearing( pros::motor_gearset_e_t gearset )
 {
     while ( lock.exchange( true ) );
-    
-    try 
+
+    try
     {
         motor->set_gearing(gearset);
     }
@@ -509,13 +508,13 @@ int Motor::set_gearing( pros::motor_gearset_e_t gearset )
         entry.content = "[ERROR], " + std::to_string(pros::millis()) + ", could not set gearing on motor port " + std::to_string(motor_port);
         entry.stream = "cerr";
         logger.add(entry);
-        
+
         lock.exchange(false);
         return 0;
     }
-    
+
     lock.exchange(false);
-    
+
     return 1;
 }
 
@@ -523,12 +522,12 @@ int Motor::set_gearing( pros::motor_gearset_e_t gearset )
 /**
  * aquires lock and internally reverses motor
  * exception safe to always release lock
- */       
+ */
 int Motor::reverse_motor( )
 {
     while ( lock.exchange( true ) );
-    
-    try 
+
+    try
     {
         motor->set_reversed(!motor->is_reversed());
     }
@@ -539,13 +538,13 @@ int Motor::reverse_motor( )
         entry.content = "[ERROR], " + std::to_string(pros::millis()) + ", could not reverse motor on port " + std::to_string(motor_port);
         entry.stream = "cerr";
         logger.add(entry);
-        
+
         lock.exchange(false);
         return 0;
     }
-    
-    lock.exchange(false);    
-    
+
+    lock.exchange(false);
+
     return 1;
 }
 
@@ -553,12 +552,12 @@ int Motor::reverse_motor( )
 /**
  * aquires lock and sets new PID constants for the motor
  * exception safe to always release lock
- */       
+ */
 int Motor::set_pid( pid pid_consts )
 {
     while ( lock.exchange( true ) );
-    
-    try 
+
+    try
     {
         internal_motor_pid.kP = pid_consts.kP;
         internal_motor_pid.kI = pid_consts.kI;
@@ -572,20 +571,20 @@ int Motor::set_pid( pid pid_consts )
         entry.content = "[ERROR], " + std::to_string(pros::millis()) + ", could not set motor pid on motor port " + std::to_string(motor_port);
         entry.stream = "cerr";
         logger.add(entry);
-        
+
         lock.exchange(false);
         return 0;
     }
-    
+
     lock.exchange(false);
-    
-    return 1;    
+
+    return 1;
 }
 
 
 /**
  * sets a new log level for the motor, caps it between 0 and 5
- */       
+ */
 void Motor::set_log_level( int logging )
 {
     if ( logging > 5 )
@@ -596,7 +595,7 @@ void Motor::set_log_level( int logging )
     {
         log_level = 0;
     }
-    else 
+    else
     {
         log_level = logging;
     }
@@ -605,22 +604,22 @@ void Motor::set_log_level( int logging )
 
 
 
-//movement functions      
+//movement functions
 
 /**
  * sets new voltage by scaling from interval +/- 127 to +/- 12000
- */         
+ */
 int Motor::move( int voltage )
 {
     int prev_max = 127;
     int prev_min = -127;
     int new_max = 12000;
     int new_min = -12000;
-    
+
     int scaled_voltage = (((voltage - prev_min) * (new_max - new_min)) / (prev_max - prev_min)) + new_min;
     set_voltage_setpoint(scaled_voltage); //dont aquire lock because it will be acquired in this function
     set_velocity_setpoint(to_velocity(scaled_voltage));
-    
+
     return 1;
 }
 
@@ -629,28 +628,28 @@ int Motor::user_move( int voltage ) {
         move(voltage);
         return 1;
     }
-    
+
     return 0;
 }
 
 
 /**
- * sets new voltage by scaling from gearset interval to voltage range  
+ * sets new voltage by scaling from gearset interval to voltage range
  * of +/- 12000
- */  
+ */
 int Motor::move_velocity( int velocity )
 {
     set_velocity_setpoint(velocity);
     set_voltage_setpoint(to_voltage(velocity));
-    
-    return 1;    
+
+    return 1;
 }
 
 
 int Motor::set_voltage(int voltage) {
     set_voltage_setpoint(voltage);
     set_velocity_setpoint(to_velocity(voltage));
-    
+
     return 1;
 }
 
@@ -658,7 +657,7 @@ int Motor::set_voltage(int voltage) {
 /**
  * aquires lock and sets new voltage setpoint for the motor
  * exception safe to always release lock
- */      
+ */
 int Motor::set_voltage_setpoint( int voltage )
 {
     while ( lock.exchange( true ) );
@@ -667,18 +666,18 @@ int Motor::set_voltage_setpoint( int voltage )
     {
         integral = 0;
     }
-    lock.exchange(false);     
-    
-    return 1; 
+    lock.exchange(false);
+
+    return 1;
 }
 
 
 int Motor::set_velocity_setpoint(int new_velocity) {
     while ( lock.exchange( true ) );
     velocity_setpoint = new_velocity;
-    lock.exchange(false);     
-    
-    return 1; 
+    lock.exchange(false);
+
+    return 1;
 }
 
 
@@ -688,50 +687,50 @@ int Motor::set_velocity_setpoint(int new_velocity) {
 
 /**
  * aquires lock and sets flag for using velocity PID
- */      
+ */
 void Motor::set_motor_mode(motor_mode new_mode)
 {
     while ( lock.exchange( true ) );
     mode = new_mode;
-    lock.exchange(false);        
+    lock.exchange(false);
 }
 
-        
-            
-//slew control functions    
+
+
+//slew control functions
 
 /**
  * aquires lock and sets new slew rate to be used in calculations
- */      
+ */
 int Motor::set_slew( int rate )
 {
     while ( lock.exchange( true ) );
     slew_rate = rate;
-    lock.exchange(false);    
-    
+    lock.exchange(false);
+
     return 1;
 }
 
 
 /**
  * aquires lock and sets flag for using slew rate
- */      
+ */
 void Motor::enable_slew( )
 {
     while ( lock.exchange( true ) );
     slew_enabled = true;
-    lock.exchange(false);     
+    lock.exchange(false);
 }
 
 
 /**
  * aquires lock and clears flag for using slew rate
- */      
+ */
 void Motor::disable_slew( )
 {
     while ( lock.exchange( true ) );
     slew_enabled = false;
-    lock.exchange(false);      
+    lock.exchange(false);
 }
 
 
@@ -741,7 +740,7 @@ void Motor::disable_slew( )
 
 /**
  * aquires lock and sets flag for allowing driver control
- */      
+ */
 void Motor::enable_driver_control()
 {
     while ( lock.exchange( true ) );
@@ -752,7 +751,7 @@ void Motor::enable_driver_control()
 
 /**
  * aquires lock and clears flag for allowing driver control
- */      
+ */
 void Motor::disable_driver_control()
 {
     while ( lock.exchange( true ) );
@@ -763,14 +762,14 @@ void Motor::disable_driver_control()
 
 /**
  * returns flag for allowing driver control
- */      
+ */
 int Motor::driver_control_allowed()
 {
     if ( allow_driver_control )
     {
         return 1;
     }
-    else 
+    else
     {
         return 0;
     }
@@ -781,10 +780,10 @@ int Motor::driver_control_allowed()
 
 /**
  * gets the voltage to set the motor to based on pid and slew rate calculations
- * and internally sets motor voltage 
- * calculates what log message is to be based on the log level set and adds it to 
+ * and internally sets motor voltage
+ * calculates what log message is to be based on the log level set and adds it to
  * the logger queue
- */      
+ */
 int Motor::run( int delta_t )
 {
     switch(mode) {
@@ -801,15 +800,15 @@ int Motor::run( int delta_t )
         }
     }
 
-    
-    
-    std::string log_msg; 
+
+
+    std::string log_msg;
     switch ( log_level )
     {
         case 0:
             log_msg = "";
             break;
-            
+
         case 1:
             log_msg = (
                 "[INFO]," + std::string(" Motor ") + std::to_string(motor_port)
@@ -827,7 +826,7 @@ int Motor::run( int delta_t )
                 + ", Vel: " + std::to_string(get_actual_velocity())
             );
             break;
-            
+
         case 2:
             log_msg = (
                 "[INFO]," + std::string(" Motor ") + std::to_string(motor_port)
@@ -847,7 +846,7 @@ int Motor::run( int delta_t )
                 + ", Vel: " + std::to_string(get_actual_velocity())
             );
             break;
-            
+
         case 3:
             log_msg = (
                 "[INFO]," + std::string(" Motor ") + std::to_string(motor_port)
@@ -868,7 +867,7 @@ int Motor::run( int delta_t )
                 + ", Vel: " + std::to_string(get_actual_velocity())
             );
             break;
-            
+
         case 4:
             log_msg = (
                 "[INFO]," + std::string(" Motor ") + std::to_string(motor_port)
@@ -890,8 +889,8 @@ int Motor::run( int delta_t )
                 + ", Vel_Sp: " + std::to_string(to_velocity(voltage_setpoint))
                 + ", Vel: " + std::to_string(get_actual_velocity())
             );
-            break; 
-            
+            break;
+
         case 5:
             log_msg = (
                 "[INFO]," + std::string(" Motor ") + std::to_string(motor_port)
@@ -917,7 +916,7 @@ int Motor::run( int delta_t )
                 + ", Vel: " + std::to_string(get_actual_velocity())
             );
             break;
-        
+
     }
 
     Logger logger;
@@ -925,6 +924,6 @@ int Motor::run( int delta_t )
     entry.content = log_msg;
     entry.stream = "clog";
     logger.add(entry);
-        
+
     return 1;
 }
