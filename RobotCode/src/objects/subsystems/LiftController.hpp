@@ -23,6 +23,7 @@
 typedef enum e_lift_command {
     e_start_up,
     e_start_down,
+    e_move_to,
     e_stop
 } lift_command;
 
@@ -53,6 +54,8 @@ class LiftController
         static std::vector<int> commands_finished;
         static std::atomic<bool> command_start_lock;
         static std::atomic<bool> command_finish_lock;
+        
+        std::vector<int> setpoints;
 
         int send_command(lift_command command, lift_args args={});
 
@@ -62,6 +65,10 @@ class LiftController
         LiftController(Motor& lift);
         ~LiftController();
 
+        int cycle_setpoint(int direction, bool asynch);
+        int move_to(double sensor_value, bool asynch);
+        
+        
         void move_down();
         void move_up();
 

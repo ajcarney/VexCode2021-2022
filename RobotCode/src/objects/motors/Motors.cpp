@@ -21,7 +21,8 @@ namespace Motors
     Motor mogo_lift    {MOGO_MOTOR, MOGO_GEARSET, MOGO_REVERSED};
     Motor lift         {LIFT_MOTOR, LIFT_GEARSET, LIFT_REVERSED};
 
-    pros::ADIDigitalOut piston1 {1};
+    pros::ADIDigitalOut piston1 {PISTON1_MOTOR};
+    pros::ADIDigitalOut piston2 {PISTON2_MOTOR};
 
     double chassis_gear_ratio = 3 / 5;
 

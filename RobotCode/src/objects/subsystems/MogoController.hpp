@@ -4,7 +4,7 @@
  * @reviewed_on:
  * @reviewed_by:
  *
- * Contains class for the mobile goal lift subsystem
+ * Contains class for the mobile goal mogo subsystem
  */
 
 #ifndef __MOGO_CONTROLLER_HPP__
@@ -21,9 +21,10 @@
 
 
 typedef enum e_mogo_command {
-    e_start_up,
-    e_start_down,
-    e_stop
+    e_mogo_start_up,
+    e_mogo_start_down,
+    e_mogo_move_to,
+    e_mogo_stop
 } mogo_command;
 
 typedef struct {
@@ -53,6 +54,8 @@ class MogoController
         static std::vector<int> commands_finished;
         static std::atomic<bool> command_start_lock;
         static std::atomic<bool> command_finish_lock;
+        
+        std::vector<int> setpoints;
 
         int send_command(mogo_command command, mogo_args args={});
 
@@ -62,6 +65,10 @@ class MogoController
         MogoController(Motor& mogo);
         ~MogoController();
 
+        int cycle_setpoint(int direction, bool asynch);
+        int move_to(double sensor_value, bool asynch);
+        
+        
         void move_down();
         void move_up();
 

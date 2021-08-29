@@ -30,6 +30,10 @@ LiftController::LiftController(Motor &motor) {
     lift_motor->set_motor_mode(e_voltage);
 
     lift_motor->disable_slew();
+    
+    for(int i = 0; i<(sizeof(Configuration::lift_setpoints) / sizeof(Configuration::lift_setpoints[0])); i++) {
+        setpoints.push_back(Configuration::lift_setpoints[i]);
+    }
 
     if(num_instances == 0 || thread == NULL) {
         thread = new pros::Task( lift_motion_task, (void*)NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "lift_thread");
@@ -95,6 +99,55 @@ int LiftController::send_command(lift_command command, lift_args args /*{}*/) {
 
     return action.uid;
 }
+
+
+/**
+ * finds where the current index is in the list of setpoints
+ * then increases or decreases the index to find the new setpoint
+ * based on the parameter
+ * then calls move_to to move to the new setpoint
+ * caps the max and min and does not wrap back around
+ */
+int LiftController::cycle_setpoint(int direction, bool asynch) {
+    int current_pot_value = lift_motor->get_encoder_position();  // TODO: if you use a potentiometer set this to the pot value
+    int target_set_point;
+
+    std::vector<int> sorted_setpoints;
+    for ( int i = 0; i < setpoints.size(); i++ ) {
+        sorted_setpoints.push_back(setpoints[i] );
+    }
+    sorted_setpoints.push_back( current_pot_value );
+
+    std::sort( sorted_setpoints.begin(), sorted_setpoints.end() );
+    std::vector<int>::iterator elem = std::find (sorted_setpoints.begin(),
+                                                 sorted_setpoints.end(),
+                                                 current_pot_value);
+    int index = std::distance(sorted_setpoints.begin(), elem);
+
+    int loc = (std::abs(direction) / direction) + index;
+
+    if ( !(loc < 0) || !(loc > setpoints.size() ))  //cap the max and min for the list
+    {
+        target_set_point = setpoints[loc];
+        int uid = move_to(target_set_point, asynch);
+        
+        return uid;
+    }
+    
+    return -INT32_MAX;
+}
+
+
+int LiftController::move_to(double sensor_value, bool asynch) {
+    lift_args args;
+    args.end_state = sensor_value;
+    int uid = send_command(e_move_to, args);
+    if(!asynch) {
+        wait_until_finished(uid);
+    }
+    return uid;
+}
+
 
 void LiftController::move_up() {
     send_command(e_start_up);

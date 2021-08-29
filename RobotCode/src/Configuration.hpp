@@ -33,8 +33,6 @@
 
 #include "main.h"
 
-#include "../lib/json.hpp"
-
 #define BR_MOTOR                  1
 #define MR_MOTOR                  2
 #define FR_MOTOR                  3
@@ -54,22 +52,26 @@
 #define LIFT_REVERSED             0
 
 
+#define PISTON1_MOTOR            'A' 
+#define PISTON2_MOTOR            'B'
+
 // @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges
 #define CHASSIS_GEARSET           pros::E_MOTOR_GEARSET_06
 #define LIFT_GEARSET              pros::E_MOTOR_GEARSET_06
 #define MOGO_GEARSET              pros::E_MOTOR_GEARSET_06
 
-#define LEFT_ENC_TOP_PORT        'G'
-#define LEFT_ENC_BOTTOM_PORT     'H'
-#define RIGHT_ENC_TOP_PORT       'A'
-#define RIGHT_ENC_BOTTOM_PORT    'B'
-#define STRAFE_ENC_TOP_PORT      'E'
-#define STRAFE_ENC_BOTTOM_PORT   'F'
-#define DETECTOR_MIDDLE_PORT     'C'
+
+#define LEFT_ENC_TOP_PORT        'Z'
+#define LEFT_ENC_BOTTOM_PORT     'Z'
+#define RIGHT_ENC_TOP_PORT       'Z'
+#define RIGHT_ENC_BOTTOM_PORT    'Z'
+#define STRAFE_ENC_TOP_PORT      'Z'
+#define STRAFE_ENC_BOTTOM_PORT   'Z'
+#define DETECTOR_MIDDLE_PORT     'Z'
 #define POTENTIOMETER_PORT       'Z'
 
-#define DETECTOR_BOTTOM_PORT     'Z'  // no port available but still wanted in code
-#define DETECTOR_TOP_PORT        'D'  // no port available but still wanted in code
+#define DETECTOR_BOTTOM_PORT     'Z'
+#define DETECTOR_TOP_PORT        'Z'
 
 #define OPTICAL_PORT              5
 #define DISTANCE_PORT            20

@@ -5,6 +5,8 @@
  * @reviewed_by: Aiden Carney
  *
  * @see: DriverControl.hpp
+ * see https://pros.cs.purdue.edu/v5/api/cpp/misc.html#pros-controller-digital-e-t
+ * for button names
  *
  */
 
@@ -15,6 +17,8 @@
 
 #include "objects/lcdCode/gui.hpp"
 #include "objects/subsystems/chassis.hpp"
+#include "objects/subsystems/LiftController.hpp"
+#include "objects/subsystems/MogoController.hpp"
 #include "objects/controller/controller.hpp"
 #include "objects/motors/Motors.hpp"
 #include "objects/sensors/Sensors.hpp"
@@ -34,9 +38,19 @@ void driver_control(void*)
     Controller controllers;
 
     Chassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, CHASSIS_WIDTH, CHASSIS_GEAR_RATIO);
+    LiftController lift{Motors::lift};
+    MogoController mogo{Motors::mogo_lift};
 
     int left_analog_y = 0;
     int right_analog_y = 0;
+    
+    bool p1_state = false;
+    bool p2_state = false;
+    Motors::piston1.set_value(false);
+    Motors::piston2.set_value(false);
+    
+    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
+    
 
     while ( true ) {
         controllers.update_button_history();
@@ -44,6 +58,15 @@ void driver_control(void*)
     // section for chassis movement
         if(std::abs(controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)) < 5) {   // define deadzone for left analog input on the y axis
             left_analog_y = 0;
+    Motors::piston1.set_value(false);
+    Motors::piston2.set_value(false);
+    
+    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
+    
+
+    while ( true ) {
+        controllers.update_button_history();
+
         } else {
             left_analog_y = controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         }
@@ -63,8 +86,46 @@ void driver_control(void*)
         Motors::front_right.user_move(right_analog_y);
         Motors::mid_left.user_move(right_analog_y);
         Motors::back_right.user_move(right_analog_y);
+        
+        
+    // piston movement
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)) {  // toggle piston 1
+            p1_state = !p1_state;
+            Motors::piston1.set_value(p1_state);
+        }
+        
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // toggle piston 2
+            p2_state = !p2_state;
+            Motors::piston2.set_value(p2_state);
+        }
 
+    // lift movement
+        if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) {
+            lift.cycle_setpoint(1, true);
+        } else if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+            lift.cycle_setpoint(-1, true);
+        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) {
+            lift.move_up();
+        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+            lift.move_down();
+        } else {
+            lift.stop();
+        }
+    
+    // mogo movement
+        if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1)) {
+            mogo.cycle_setpoint(1, true);
+        } else if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2)) {
+            mogo.cycle_setpoint(-1, true);
+        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1)) {
+            mogo.move_up();
+        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2)) {
+            mogo.move_down();
+        } else {
+            mogo.stop();
+        }
 
+    // misc. functions
         if ( controllers.master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN) ) {
             autons.deploy();
         }

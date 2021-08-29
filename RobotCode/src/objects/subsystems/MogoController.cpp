@@ -30,6 +30,10 @@ MogoController::MogoController(Motor &motor) {
     mogo_motor->set_motor_mode(e_voltage);
 
     mogo_motor->disable_slew();
+    
+    for(int i = 0; i<(sizeof(Configuration::mogo_setpoints) / sizeof(Configuration::mogo_setpoints[0])); i++) {
+        setpoints.push_back(Configuration::mogo_setpoints[i]);
+    }
 
     if(num_instances == 0 || thread == NULL) {
         thread = new pros::Task( mogo_motion_task, (void*)NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "mogo_thread");
@@ -66,13 +70,13 @@ void MogoController::mogo_motion_task(void*) {
 
         // execute command
         switch(action.command) {
-            case e_start_up: {
+            case e_mogo_start_up: {
                 mogo_motor->set_voltage(12000);
                 break;
-            } case e_start_down: {
+            } case e_mogo_start_down: {
                 mogo_motor->set_voltage(-12000);
                 break;
-            } case e_stop: {
+            } case e_mogo_stop: {
                 mogo_motor->set_voltage(0);
                 break;
             }
@@ -96,22 +100,71 @@ int MogoController::send_command(mogo_command command, mogo_args args /*{}*/) {
     return action.uid;
 }
 
+
+/**
+ * finds where the current index is in the list of setpoints
+ * then increases or decreases the index to find the new setpoint
+ * based on the parameter
+ * then calls move_to to move to the new setpoint
+ * caps the max and min and does not wrap back around
+ */
+int MogoController::cycle_setpoint(int direction, bool asynch) {
+    int current_pot_value = mogo_motor->get_encoder_position();  // TODO: if you use a potentiometer set this to the pot value
+    int target_set_point;
+
+    std::vector<int> sorted_setpoints;
+    for ( int i = 0; i < setpoints.size(); i++ ) {
+        sorted_setpoints.push_back(setpoints[i] );
+    }
+    sorted_setpoints.push_back( current_pot_value );
+
+    std::sort( sorted_setpoints.begin(), sorted_setpoints.end() );
+    std::vector<int>::iterator elem = std::find (sorted_setpoints.begin(),
+                                                 sorted_setpoints.end(),
+                                                 current_pot_value);
+    int index = std::distance(sorted_setpoints.begin(), elem);
+
+    int loc = (std::abs(direction) / direction) + index;
+
+    if ( !(loc < 0) || !(loc > setpoints.size() ))  //cap the max and min for the list
+    {
+        target_set_point = setpoints[loc];
+        int uid = move_to(target_set_point, asynch);
+        
+        return uid;
+    }
+    
+    return -INT32_MAX;
+}
+
+
+int MogoController::move_to(double sensor_value, bool asynch) {
+    mogo_args args;
+    args.end_state = sensor_value;
+    int uid = send_command(e_mogo_move_to, args);
+    if(!asynch) {
+        wait_until_finished(uid);
+    }
+    return uid;
+}
+
+
 void MogoController::move_up() {
-    send_command(e_start_up);
+    send_command(e_mogo_start_up);
 }
 
 void MogoController::move_down() {
-    send_command(e_start_down);
+    send_command(e_mogo_start_down);
 }
 
 
 void MogoController::hard_stop() {
     reset_command_queue();
-    send_command(e_stop);
+    send_command(e_mogo_stop);
 }
 
 void MogoController::stop() {
-    send_command(e_stop);
+    send_command(e_mogo_stop);
 }
 
 

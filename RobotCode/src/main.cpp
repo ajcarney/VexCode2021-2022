@@ -161,7 +161,7 @@ void autonomous() {
      //Writer writer;
      std::cerr << "program caught " << signal << "\n" << std::flush;
      std::cerr << "errno: " << errno << "\n" << std::flush;
-     std::cerr << "strerror: " << std::strerror(errno) << "\n" << std::flush;
+     std::cerr << "strerror: " << strerror(errno) << "\n" << std::flush;
      pros::delay(100); // wait for stdout to be flushed
      raise(signal);
  }
