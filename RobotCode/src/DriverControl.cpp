@@ -55,18 +55,8 @@ void driver_control(void*)
     while ( true ) {
         controllers.update_button_history();
 
-    // section for chassis movement
-        if(std::abs(controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)) < 5) {   // define deadzone for left analog input on the y axis
+        if(std::abs(controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)) < 5) {   // define deadzone for right analog input on the y axis
             left_analog_y = 0;
-    Motors::piston1.set_value(false);
-    Motors::piston2.set_value(false);
-    
-    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
-    
-
-    while ( true ) {
-        controllers.update_button_history();
-
         } else {
             left_analog_y = controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         }
