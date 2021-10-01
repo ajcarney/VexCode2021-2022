@@ -1503,7 +1503,7 @@ void Chassis::set_pid_sdrive_gains(pid_gains new_gains) {
     pid_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void set_profiled_sdrive_gains(pid_gains new_gains) {
+void Chassis::set_profiled_sdrive_gains(pid_gains new_gains) {
     profiled_sdrive_gains.kP = new_gains.kP;
     profiled_sdrive_gains.kI = new_gains.kI;
     profiled_sdrive_gains.kD = new_gains.kD;
@@ -1511,7 +1511,7 @@ void set_profiled_sdrive_gains(pid_gains new_gains) {
     profiled_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void set_okapi_sdrive_gains(pid_gains new_gains) {
+void Chassis::set_okapi_sdrive_gains(pid_gains new_gains) {
     okapi_sdrive_gains.kP = new_gains.kP;
     okapi_sdrive_gains.kI = new_gains.kI;
     okapi_sdrive_gains.kD = new_gains.kD;
