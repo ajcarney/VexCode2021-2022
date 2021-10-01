@@ -97,10 +97,12 @@ double Chassis::width;
 double Chassis::gear_ratio;
 double Chassis::wheel_diameter;
 
-pid_gains Chassis::pos_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+
+pid_gains Chassis::pid_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid_gains Chassis::profiled_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid_gains Chassis::okapi_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
 pid_gains Chassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
 pid_gains Chassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
-
 
 
 Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing /*1*/, double wheel_size /*4.05*/)
@@ -394,15 +396,15 @@ void Chassis::chassis_motion_task(void*) {
 void Chassis::t_pid_straight_drive(chassis_params args) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
-    double kP_l = pos_gains.kP;
-    double kI_l = pos_gains.kI;
-    double kD_l = pos_gains.kD;
-    double I_max_l = pos_gains.I_max;
+    double kP_l = pid_sdrive_gains.kP;
+    double kI_l = pid_sdrive_gains.kI;
+    double kD_l = pid_sdrive_gains.kD;
+    double i_max_l = pid_sdrive_gains.i_max;
 
-    double kP_r = pos_gains.kP;
-    double kI_r = pos_gains.kI;
-    double kD_r = pos_gains.kD;
-    double I_max_r = pos_gains.I_max;
+    double kP_r = pid_sdrive_gains.kP;
+    double kI_r = pid_sdrive_gains.kI;
+    double kD_r = pid_sdrive_gains.kD;
+    double i_max_r = pid_sdrive_gains.i_max;
 
     front_left_drive->disable_driver_control();
     front_right_drive->disable_driver_control();
@@ -449,14 +451,14 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
         double error_l = args.setpoint1 - std::get<0>(Sensors::get_average_encoders(l_id, r_id));
         double error_r = args.setpoint2 - std::get<1>(Sensors::get_average_encoders(l_id, r_id));
 
-        if ( std::abs(integral_l) > I_max_l || !use_integral_l) {
+        if ( std::abs(integral_l) > i_max_l || !use_integral_l) {
             integral_l = 0;  // reset integral if greater than max allowable value
             use_integral_l = false;
         } else {
             integral_l = integral_l + (error_l * dt);
         }
 
-        if ( std::abs(integral_r) > I_max_l || !use_integral_r) {
+        if ( std::abs(integral_r) > i_max_l || !use_integral_r) {
             integral_r = 0;  // reset integral if greater than max allowable value
             use_integral_r = false;
         } else {
@@ -477,7 +479,7 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
     // slew rate code
         double delta_velocity_l = left_velocity - prev_velocity_l;
         double delta_velocity_r = right_velocity - prev_velocity_r;
-        double slew_rate = pos_gains.motor_slew;
+        double slew_rate = pid_sdrive_gains.motor_slew;
         if(std::abs(delta_velocity_l) > (dt * slew_rate) && (std::signbit(delta_velocity_l) == std::signbit(left_velocity)) ) {  // ignore deceleration
             if(delta_velocity_l == 0) {
                 std::cout << "delta_velocity_l was equal to 0\n";
@@ -550,7 +552,7 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
                 + ", Slew: " + std::to_string(args.motor_slew)
                 + ", Brake: " + std::to_string(front_left_drive->get_brake_mode())
                 + ", Gear: " + std::to_string(front_left_drive->get_gearset())
-                + ", I_max: " + std::to_string(I_max_l)
+                + ", i_max: " + std::to_string(i_max_l)
                 + ", I: " + std::to_string(integral_l)
                 + ", kD: " + std::to_string(kD_l)
                 + ", kI: " + std::to_string(kI_l)
@@ -629,9 +631,9 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
 void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
     PositionTracker* tracker = PositionTracker::get_instance();
     int start_time = pros::millis();
-    auto pos_r_controller = okapi::IterativeControllerFactory::posPID(.0015, 0, 0);
-    auto pos_l_controller = okapi::IterativeControllerFactory::posPID(.0015, 0, 0);
-    auto heading_controller = okapi::IterativeControllerFactory::posPID(0.001, 0, 0);
+    auto pos_r_controller = okapi::IterativeControllerFactory::posPID(okapi_sdrive_gains.kP, okapi_sdrive_gains.kI, okapi_sdrive_gains.kD);
+    auto pos_l_controller = okapi::IterativeControllerFactory::posPID(okapi_sdrive_gains.kP, okapi_sdrive_gains.kI, okapi_sdrive_gains.kD);
+    auto heading_controller = okapi::IterativeControllerFactory::posPID(heading_gains.kP, heading_gains.kI, heading_gains.kD);
     pos_l_controller.setTarget(args.setpoint1);
     pos_r_controller.setTarget(args.setpoint1);
     heading_controller.setTarget(0);
@@ -729,10 +731,10 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
 void Chassis::t_profiled_straight_drive(chassis_params args) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
-    double kP = args.kP;
-    double kI = args.kI;
-    double kD = args.kD;
-    double I_max = INT32_MAX;
+    double kP = profiled_sdrive_gains.kP;
+    double kI = profiled_sdrive_gains.kI;
+    double kD = profiled_sdrive_gains.kD;
+    double i_max = profiled_sdrive_gains.i_max;
 
     front_left_drive->disable_driver_control();
     front_right_drive->disable_driver_control();
@@ -789,16 +791,6 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
             velocity_r = 0;
         }
 
-
-        // double velocity;
-        // if(velocity_l > velocity_r) {
-        //     velocity_r = velocity_r;
-        //     velocity_l = velocity_r;
-        // } else {
-        //     velocity_r = velocity_l;
-        //     velocity_l = velocity_l;
-        // }
-
         if(args.setpoint1 < 0) {
             velocity_l = -velocity_l;
             velocity_r = -velocity_r;
@@ -814,16 +806,12 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
         std::cout << "relative angle: " << relative_angle << " | dtheta: " << delta_theta << "\n";
         // cap velocity to max velocity with regard to velocity
         integral = integral + (error * dt);
-        if(integral > I_max) {
-            integral = I_max;
-        } else if (integral < -I_max) {
-            integral = -I_max;
+        if(integral > i_max) {
+            integral = i_max;
+        } else if (integral < -i_max) {
+            integral = -i_max;
         }
 
-        // if(std::signbit(error) != std::signbit(prev_error)) {
-        //     std::cout << "halving " << integral << " " << prev_integral;
-        //     integral = .5 * integral;
-        // }
         prev_integral = integral;
 
         double derivative = error - prev_error;
@@ -837,7 +825,7 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
 
     // PI heading correction
         // double velocity_correction = std::abs(kI * integral);
-        double velocity_correction = std::abs(args.kP * error + args.kI * integral + args.kD * derivative);
+        double velocity_correction = std::abs(kP * error + kI * integral + kD * derivative);
         std::cout << "integral: " << integral << " " << velocity_correction << "\n";
         if(args.correct_heading  && error > 0.000001) {  // veering off course, so correct
             velocity_r -= velocity_correction / 2;
@@ -869,7 +857,7 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
                 + ", Slew: " + std::to_string(args.motor_slew)
                 + ", Brake: " + std::to_string(front_left_drive->get_brake_mode())
                 + ", Gear: " + std::to_string(front_left_drive->get_gearset())
-                + ", I_max: " + std::to_string(I_max)
+                + ", i_max: " + std::to_string(i_max)
                 + ", I: " + std::to_string(integral)
                 + ", kD: " + std::to_string(kD)
                 + ", kI: " + std::to_string(kI)
@@ -914,14 +902,7 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
         ) {
             break; // end before timeout
         }
-        // if(error_l < 5 || error_r < 5) {  // shut off motors when one side reaches the setpoint
-        //     velocity_l = 0;
-        //     velocity_r = 0;
-        //     break;
-        // }
 
-        std::cout << "velocity: " << velocity_l << " " << velocity_r << "\n";
-        std::cout << "error: " << error_r << " " << error_l << " " << error << "\n";
         front_left_drive->move_velocity(velocity_l);
         front_right_drive->move_velocity(velocity_r);
         back_left_drive->move_velocity(velocity_l);
@@ -963,7 +944,7 @@ void Chassis::t_turn(chassis_params args) {
     double kP = turn_gains.kP;
     double kI = turn_gains.kI;
     double kD = turn_gains.kD;
-    double I_max = turn_gains.I_max;
+    double i_max = turn_gains.i_max;
 
     front_left_drive->disable_driver_control();
     front_right_drive->disable_driver_control();
@@ -1024,10 +1005,10 @@ void Chassis::t_turn(chassis_params args) {
         long double error = args.setpoint1 - relative_angle;
 
         integral = integral + (error * dt);
-        if(integral > I_max) {
-            integral = I_max;
-        } else if (integral < -I_max) {
-            integral = -I_max;
+        if(integral > i_max) {
+            integral = i_max;
+        } else if (integral < -i_max) {
+            integral = -i_max;
         }
 
         double derivative = error - prev_error;
@@ -1103,7 +1084,7 @@ void Chassis::t_turn(chassis_params args) {
                 + ", Slew: " + std::to_string(args.motor_slew)
                 + ", Brake: " + std::to_string(front_left_drive->get_brake_mode())
                 + ", Gear: " + std::to_string(front_left_drive->get_gearset())
-                + ", I_max: " + std::to_string(I_max)
+                + ", i_max: " + std::to_string(i_max)
                 + ", I: " + std::to_string(integral)
                 + ", kD: " + std::to_string(kD)
                 + ", kI: " + std::to_string(kI)
@@ -1241,10 +1222,6 @@ void Chassis::t_move_to_waypoint(chassis_params args, waypoint point) {
     turn_args.setpoint1 = to_turn;
     turn_args.max_velocity = args.max_velocity;
     turn_args.timeout = args.timeout; // TODO: add time estimation
-    args.kP = 2.8;
-    args.kI = 0.0005;
-    args.kD = 50;
-    args.I_max = INT32_MAX;
     turn_args.motor_slew = args.motor_slew;
     turn_args.log_data = args.log_data;
 
@@ -1259,22 +1236,12 @@ void Chassis::t_move_to_waypoint(chassis_params args, waypoint point) {
     chassis_params drive_straight_args;
     drive_straight_args.setpoint1 = to_drive;
     drive_straight_args.setpoint2 = to_drive;
-    drive_straight_args.max_velocity = 125;
+    drive_straight_args.max_velocity = args.max_velocity;
     drive_straight_args.timeout = args.timeout;
-    drive_straight_args.kP = .77;
-    drive_straight_args.kI = 0.000002;
-    drive_straight_args.kD = 7;
-    drive_straight_args.I_max = INT32_MAX;
     drive_straight_args.motor_slew = args.motor_slew;
     drive_straight_args.correct_heading = args.correct_heading;
     drive_straight_args.log_data = args.log_data;
-    //
-    // std::cout << "starting drive\n";
-    // std::cout << to_drive << "\n";
-    // drive_straight_args.kP = .2;
-    // drive_straight_args.kI = .001;
-    // drive_straight_args.kD = 0;
-    // drive_straight_args.I_max = 2000;
+
     t_okapi_pid_straight_drive(drive_straight_args);
 
     std::cout << "drive finished\n";
@@ -1333,10 +1300,6 @@ int Chassis::profiled_straight_drive(double encoder_ticks, int max_velocity  /*4
     args.setpoint2 = relative_heading;
     args.max_velocity = max_velocity;
     args.timeout = timeout;
-    args.kP = 2;
-    args.kI = 0.0005;
-    args.kD = 0.001;
-    args.I_max = INT32_MAX;
     args.correct_heading = correct_heading;
     args.log_data = log_data;
 
@@ -1383,10 +1346,6 @@ int Chassis::uneven_drive(double l_enc_ticks, double r_enc_ticks, int max_veloci
     args.setpoint2 = r_enc_ticks;
     args.max_velocity = max_velocity;
     args.timeout = timeout;
-    args.kP = .77;
-    args.kI = 0.000002;
-    args.kD = 7;
-    args.I_max = INT32_MAX;
     args.motor_slew = slew;
     args.correct_heading = false;
     args.log_data = log_data;
@@ -1536,19 +1495,35 @@ int Chassis::turn_to_angle(double theta, int max_velocity /*450*/, int timeout /
 
 
 
-void Chassis::set_pos_gains(pid_gains new_gains) {
-    pos_gains.kP = new_gains.kP;
-    pos_gains.kI = new_gains.kI;
-    pos_gains.kD = new_gains.kD;
-    pos_gains.I_max = new_gains.I_max;
-    pos_gains.motor_slew = new_gains.motor_slew;
+void Chassis::set_pid_sdrive_gains(pid_gains new_gains) {
+    pid_sdrive_gains.kP = new_gains.kP;
+    pid_sdrive_gains.kI = new_gains.kI;
+    pid_sdrive_gains.kD = new_gains.kD;
+    pid_sdrive_gains.i_max = new_gains.i_max;
+    pid_sdrive_gains.motor_slew = new_gains.motor_slew;
+}
+
+void set_profiled_sdrive_gains(pid_gains new_gains) {
+    profiled_sdrive_gains.kP = new_gains.kP;
+    profiled_sdrive_gains.kI = new_gains.kI;
+    profiled_sdrive_gains.kD = new_gains.kD;
+    profiled_sdrive_gains.i_max = new_gains.i_max;
+    profiled_sdrive_gains.motor_slew = new_gains.motor_slew;
+}
+
+void set_okapi_sdrive_gains(pid_gains new_gains) {
+    okapi_sdrive_gains.kP = new_gains.kP;
+    okapi_sdrive_gains.kI = new_gains.kI;
+    okapi_sdrive_gains.kD = new_gains.kD;
+    okapi_sdrive_gains.i_max = new_gains.i_max;
+    okapi_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
 void Chassis::set_heading_gains(pid_gains new_gains) {
     heading_gains.kP = new_gains.kP;
     heading_gains.kI = new_gains.kI;
     heading_gains.kD = new_gains.kD;
-    heading_gains.I_max = new_gains.I_max;
+    heading_gains.i_max = new_gains.i_max;
     heading_gains.motor_slew = new_gains.motor_slew;
 }
 
@@ -1556,7 +1531,7 @@ void Chassis::set_turn_gains(pid_gains new_gains) {
     turn_gains.kP = new_gains.kP;
     turn_gains.kI = new_gains.kI;
     turn_gains.kD = new_gains.kD;
-    turn_gains.I_max = new_gains.I_max;
+    turn_gains.i_max = new_gains.i_max;
     turn_gains.motor_slew = new_gains.motor_slew;
 }
 

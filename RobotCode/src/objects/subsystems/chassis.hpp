@@ -58,10 +58,6 @@ typedef struct {
 typedef struct {
     double setpoint1=0;
     double setpoint2=0;
-    double kP=1;
-    double kI=.001;
-    double kD=.001;
-    double I_max=INT32_MAX;
     int max_velocity=150;
     int max_voltage=11000;
     int max_heading_voltage_correction=5000;
@@ -77,7 +73,7 @@ typedef struct {
     double kP=1;
     double kI=0;
     double kD=0;
-    double I_max=INT32_MAX;
+    double i_max=INT32_MAX;
     double motor_slew=INT32_MAX;
 } pid_gains;
 
@@ -113,7 +109,9 @@ class Chassis
         static std::atomic<bool> command_finish_lock;
         static int num_instances;
         
-        static pid_gains pos_gains;
+        static pid_gains pid_sdrive_gains;
+        static pid_gains profiled_sdrive_gains;
+        static pid_gains okapi_sdrive_gains;
         static pid_gains heading_gains;
         static pid_gains turn_gains;
         
@@ -147,7 +145,9 @@ class Chassis
         int turn_to_point(double x, double y, int max_velocity=450, int timeout=INT32_MAX, bool asynch = false, double slew=10, bool log_data=false);
         int turn_to_angle(double theta, int max_velocity=450, int timeout=INT32_MAX, bool asynch = false, double slew=10, bool log_data=false);
 
-        void set_pos_gains(pid_gains new_gains);
+        void set_pid_sdrive_gains(pid_gains new_gains);
+        void set_profiled_sdrive_gains(pid_gains new_gains);
+        void set_okapi_sdrive_gains(pid_gains new_gains);
         void set_heading_gains(pid_gains new_gains);
         void set_turn_gains(pid_gains new_gains);
         

@@ -29,17 +29,64 @@ To debug
 ```
 
 # Autonomous movement
+
+### Setting pid parameters
+
+Each function has its own set of pid parameters and each set of parameters can be dynamically updated at any time. The default values are located towards the top of ```RobotCode/src/objects/subsystems/chassis.cpp``` and after the ```generate_chassis_velocity_profile``` function. Setting these parameters are done with one of the following functions
+```
+chassis.set_pid_sdrive_gains({kP, kI, kD, integral_max, slew_rate)});
+chassis.set_profiled_sdrive_gains({kP, kI, kD, integral_max, slew_rate)});
+chassis.set_okapi_sdrive_gains({kP, kI, kD, integral_max, slew_rate)});
+```
+
+In addition, there are also pid parameters for the heading correction and for turning:
+```
+chassis.set_heading_gains({kP, kI, kD, integral_max, slew_rate)});
+
+chassis.set_turn_gains({kP, kI, kD, integral_max, slew_rate)});
+```
+
+For each of the straight drive functions, heading correction can be disable by either setting the correct_heading parameter to false or by setting kP, kI, and kD of the heading parameters to 0
+
+### moving straight 
+
 there are four functions for straight movement currently
 * pid_straight_drive
 * profiled_straight_drive
 * okapi_pid_straight_drive
-* drive_to_point
+* drive_to_point (uses okapi_pid_straight_drive internally)
 
-check ```RobotCode/src/objects/subsystems/chassis.hpp``` for function definitions to know which parameters each function can take (most are optional but helpful, these are not well documented but should be relatively self explanatory)
+Each has parameters similar to the following, however most of them are optional and do not need to be changed
+* encoder_ticks  ->  the number of ticks to move based on the free spinning wheels
+* relative_heading  ->  for the love of all things good on earth do not set this to anything other than 0
+* max_velocity  ->  the maximum velocity allowed (lower = more stable/consistent)
+* timeout  ->  if the function takes longer than this it will return (good to ensure there is no just sitting there randomly because it can't reach the settled threshold)
+* asynch  ->   if true this function returns right away so other functions can be called afterwards
+* correct_heading  ->  set to true to correct heading (set to false if weird things are happening)
+* slew  ->   the max change in voltage/velocity at each step (might be useful, to disable set to INT32_MAX)
+* log_data  ->  log_data (might be useful while debugging)
 
-chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});  (idk what this even affects anymore)
+check ```RobotCode/src/objects/subsystems/chassis.hpp``` for function definitions to know which parameters each function can take (most are optional but helpful, these are not well documented but should be relatively self explanatory and are explained above)
 
-##### actually, forget about all of this section. This got so sketchy at the end of last year that I can't even read it and know where to set the pid constants for each function. I will try to fix this in future updates, but for now ignore setting constants and moving. I'll try to make it easier for you by November
+### asynchronous movement
+
+most functions in the chassis subsystem allow you to return right after calling it and will return a uid to track when the function finishes. This is useful if you want to run another subsystem at the same time. This might end up looking like this (be sure to set the asynch flag to true if you want it to return immediately):
+```
+int uid = chassis.okapi_pid_straight_drive(1000, 6000, 3000, true, 2200);
+while(!chassis.is_finished(uid)) {
+    indexer.increment();  // this function needs to be called at each step so that it can decide when to stop the rollers when a ball is present
+    pros::delay(5);
+}
+```
+
+or
+
+```
+int uid = chassis.okapi_pid_straight_drive(1000, 6000, 3000, true, 2200);
+indexer.start();
+chassis.wait_until_finished(uid);
+```
+
 
 # Tuning PID Loops
 This is a long and tedious process. Here is the method I use to tune them. First some terminology:
