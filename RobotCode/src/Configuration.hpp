@@ -73,10 +73,10 @@
 #define DETECTOR_BOTTOM_PORT     'Z'
 #define DETECTOR_TOP_PORT        'Z'
 
-#define OPTICAL_PORT              5
-#define DISTANCE_PORT            20
-#define IMU_PORT                 10
-#define EXPANDER_PORT             4
+#define OPTICAL_PORT              12
+#define DISTANCE_PORT            13
+#define IMU_PORT                 15
+#define EXPANDER_PORT             17
 
 #define CHASSIS_WIDTH            16
 #define CHASSIS_GEAR_RATIO      5/3
