@@ -35,25 +35,25 @@
 
 #define BR_MOTOR                  1
 #define MR_MOTOR                  2
-#define FR_MOTOR                  3
-#define BL_MOTOR                  4
-#define ML_MOTOR                  5
-#define FL_MOTOR                  6
+#define FR_MOTOR                  11
+#define BL_MOTOR                  10
+#define ML_MOTOR                  9
+#define FL_MOTOR                  20
 #define MOGO_MOTOR                7
-#define LIFT_MOTOR                8
+#define LIFT_MOTOR                16
 
 #define BR_REVERSED               0
-#define MR_REVERSED               0
+#define MR_REVERSED               1
 #define FR_REVERSED               0
 #define BL_REVERSED               0
-#define ML_REVERSED               0
+#define ML_REVERSED               1
 #define FL_REVERSED               0
 #define MOGO_REVERSED             0
 #define LIFT_REVERSED             0
 
 
-#define PISTON1_MOTOR            'A' 
-#define PISTON2_MOTOR            'B'
+#define PISTON1_MOTOR            'C'
+#define PISTON2_MOTOR            'D'
 
 // @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges
 #define CHASSIS_GEARSET           pros::E_MOTOR_GEARSET_06
@@ -61,10 +61,10 @@
 #define MOGO_GEARSET              pros::E_MOTOR_GEARSET_06
 
 
-#define LEFT_ENC_TOP_PORT        'Z'
-#define LEFT_ENC_BOTTOM_PORT     'Z'
-#define RIGHT_ENC_TOP_PORT       'Z'
-#define RIGHT_ENC_BOTTOM_PORT    'Z'
+#define LEFT_ENC_TOP_PORT        'G'
+#define LEFT_ENC_BOTTOM_PORT     'H'
+#define RIGHT_ENC_TOP_PORT       'F'
+#define RIGHT_ENC_BOTTOM_PORT    'E'
 #define STRAFE_ENC_TOP_PORT      'Z'
 #define STRAFE_ENC_BOTTOM_PORT   'Z'
 #define DETECTOR_MIDDLE_PORT     'Z'
