@@ -48,15 +48,9 @@ void driver_control(void*)
     bool p2_state = false;
     Motors::piston1.set_value(false);
     Motors::piston2.set_value(false);
-<<<<<<< HEAD
     
     const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_UP; // TODO: set this to the actual shift key
     
-=======
-
-    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
-
->>>>>>> main
 
     while ( true ) {
         controllers.update_button_history();
