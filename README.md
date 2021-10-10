@@ -24,7 +24,7 @@ To upload (you can use multiple "--" flags)
     prosv5 upload --slot n        -> uploads to slot 'n' (1 <= n <= 8)
     prosv5 upload --name name     -> this sets the name of the program (maybe useful to you)
     prosv5 upload --help          -> will help you
-To debug 
+To debug
     prosv5 terminal               -> open a terminal to see stdout to help with debugging (especially pid)
 ```
 
@@ -48,7 +48,7 @@ chassis.set_turn_gains({kP, kI, kD, integral_max, slew_rate)});
 
 For each of the straight drive functions, heading correction can be disable by either setting the correct_heading parameter to false or by setting kP, kI, and kD of the heading parameters to 0
 
-### moving straight 
+### moving straight
 
 there are four functions for straight movement currently
 * pid_straight_drive
@@ -92,9 +92,9 @@ chassis.wait_until_finished(uid);
 This is a long and tedious process. Here is the method I use to tune them. First some terminology:
 * setpoint - the target for the sensor
 * error - the distance between the actual sensor value and the setpoint
-* kP - the proportional constant 
-* kI - the integral constant 
-* kD - the derivative constant 
+* kP - the proportional constant
+* kI - the integral constant
+* kD - the derivative constant
 * I_max - max value for the integral
 
 Then read pages 12 and 13 of this document (the rest of it is also pretty interesting but not as important for you) http://smithcsrobot.weebly.com/uploads/6/0/9/5/60954939/pid_control_document.pdf
@@ -105,7 +105,7 @@ Part 1
 3. increase kP until the robot reaches the setpoint with a reasonable speed and oscillates around the setpoint
 4. increase kD to dampen the oscillations (usually ends up being much higher than kP). If kD is too high the robot will likely not reach the setpoint
 5. If it works well here go to the next section. If it is not quite reaching the setpoint continue on
-6. decrease kP by a little bit 
+6. decrease kP by a little bit
 7. start with a very small kI (~.0001 - .001) and slowly increase until the robot starts oscillating again
 8. increase kD until you dampen the oscillations
 9. increase kP, decrease kI, increase kD to maybe help fix it
@@ -121,7 +121,7 @@ Part 2
 # Adding more auton functions
 1. go to ```RobotCode/src/Autons.hpp```
 2. under each of the maps AUTONOMOUS_NAMES, AUTONOMOUS_DESCRIPTIONS, AUTONOMOUS_COLORS add an entry with an in order number and the data necessary (follow the syntax of the others ones)
-3. make sure to not delete driver control and debug from the entries and to keep these at the first and last 
+3. make sure to not delete driver control and debug from the entries and to keep these at the first and last
 4. add a function for the new auton the syntax should be ```void skills();``` where skills is the name of the auton function
 5. go to ```RobotCode/src/Autons.cpp```
 6. update the debug_auton_num variable in the Autons class constructor (should be the first function)
