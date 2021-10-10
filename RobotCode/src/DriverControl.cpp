@@ -49,7 +49,7 @@ void driver_control(void*)
     Motors::piston1.set_value(false);
     Motors::piston2.set_value(false);
     
-    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
+    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_UP; // TODO: set this to the actual shift key
     
 
     while ( true ) {
@@ -94,9 +94,9 @@ void driver_control(void*)
             lift.cycle_setpoint(1, true);
         } else if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
             lift.cycle_setpoint(-1, true);
-        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) {
+        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_R1)) {
             lift.move_up();
-        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_R2)) {
             lift.move_down();
         } else {
             lift.stop();
@@ -107,9 +107,9 @@ void driver_control(void*)
             mogo.cycle_setpoint(1, true);
         } else if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2)) {
             mogo.cycle_setpoint(-1, true);
-        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1)) {
+        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1)) {
             mogo.move_up();
-        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2)) {
+        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L2)) {
             mogo.move_down();
         } else {
             mogo.stop();
