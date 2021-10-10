@@ -43,14 +43,20 @@ void driver_control(void*)
 
     int left_analog_y = 0;
     int right_analog_y = 0;
-    
+
     bool p1_state = false;
     bool p2_state = false;
     Motors::piston1.set_value(false);
     Motors::piston2.set_value(false);
+<<<<<<< HEAD
     
     const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_UP; // TODO: set this to the actual shift key
     
+=======
+
+    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
+
+>>>>>>> main
 
     while ( true ) {
         controllers.update_button_history();
@@ -76,14 +82,14 @@ void driver_control(void*)
         Motors::front_right.user_move(right_analog_y);
         Motors::mid_left.user_move(right_analog_y);
         Motors::back_right.user_move(right_analog_y);
-        
-        
+
+
     // piston movement
         if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)) {  // toggle piston 1
             p1_state = !p1_state;
             Motors::piston1.set_value(p1_state);
         }
-        
+
         if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // toggle piston 2
             p2_state = !p2_state;
             Motors::piston2.set_value(p2_state);
@@ -101,7 +107,7 @@ void driver_control(void*)
         } else {
             lift.stop();
         }
-    
+
     // mogo movement
         if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1)) {
             mogo.cycle_setpoint(1, true);
