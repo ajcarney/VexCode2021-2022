@@ -38,7 +38,7 @@
     Autons auton;
     auton.set_autonomous_number(final_auton_choice);
 
-    Sensors::calibrate_imu();
+    // Sensors::calibrate_imu();  // TODO: uncomment when you have an imu plugged in
 
 
     // std::cout << OptionsScreen::cnfg.use_hardcoded << '\n';
@@ -221,7 +221,6 @@ void opcontrol() {
     // autons.run_autonomous();
     // autons.skills2();
 
-    std::cout << "start driver control task\n";
     pros::Task driver_control_task (driver_control,
                                     (void*)NULL,
                                     TASK_PRIORITY_DEFAULT,
@@ -248,7 +247,6 @@ void opcontrol() {
     int r = 0;
     int g = 0;
     int b = 0;
-    std::cout << "start update gui loop in main thread\n";
     while(1) {
         if(limit_switch.get_new_press()) {
             mode += 1;

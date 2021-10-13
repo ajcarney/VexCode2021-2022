@@ -48,9 +48,11 @@ void driver_control(void*)
     bool p2_state = false;
     Motors::piston1.set_value(false);
     Motors::piston2.set_value(false);
-    
-    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_UP; // TODO: set this to the actual shift key
-    
+
+
+
+    const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
+
 
     while ( true ) {
         controllers.update_button_history();
@@ -74,7 +76,7 @@ void driver_control(void*)
 
         // float corrected_speed = ( .000043326431866017 * std::pow( rightDriveSpeed, 3 ) ) + ( 0.29594689028631 * rightDriveSpeed);  // cubic drive equation
         Motors::front_right.user_move(right_analog_y);
-        Motors::mid_left.user_move(right_analog_y);
+        Motors::mid_right.user_move(right_analog_y);
         Motors::back_right.user_move(right_analog_y);
 
 

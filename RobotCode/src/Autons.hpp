@@ -52,19 +52,22 @@ class Autons
             {1, "Driver Control"},             //used to find name of auton
             {2, "one_pt"},                     //to keep title the same
             {3, "skills-current"},
-            {4, "Debugger"}
+            {4, "Debugger"},
+            {5, "Middle Mogo Left"} //ADDED BY NOLAN PENDING REVIEW
         };
         const std::unordered_map <int, const char*> AUTONOMOUS_DESCRIPTIONS = {   //used to find color of auton
             {1, "goes directly to\ndriver control"},                               //selected to keep background the same
             {2, "deploys and thats about it"},
             {3, "skills auton that scores ? points"},
-            {4, "opens debugger"}
+            {4, "opens debugger"},
+            {5, "Middle Mogo, set alliance mogo"} //ADDED BY NOLAN PENDING REVIEW
         };
         const std::unordered_map <int, std::string> AUTONOMOUS_COLORS = {
             {1, "none"},                     //used to find color of auton
             {2, "none"},                     //selected to keep background the same
             {3, "none"},
-            {4, "none"}
+            {4, "none"},
+            {5, "none"} //ADDED BY NOLAN PENDING REVIEW
         };
 
         void set_autonomous_number(int n);
@@ -99,6 +102,15 @@ class Autons
          */
         void skills();
 
+        /**
+         * @return: None
+         *
+         * @see: Motors.hpp
+         *
+         * runs Middle Mogo Left
+         */
+
+        void MidMogoLeft(); //ADDED BY NOLAN PENDING REVIEW
 
         void run_autonomous();
 };

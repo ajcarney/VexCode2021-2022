@@ -25,7 +25,7 @@ int Autons::selected_number = 1;
 
 Autons::Autons( )
 {
-    debug_auton_num = 4;  // TODO: this should be dynamically set because it causes a lot of errors otherwise
+    debug_auton_num = 5;  // TODO: this should be dynamically set because it causes a lot of errors otherwise  //ADDED BY NOLAN PENDING REVIEW
     driver_control_num = 1;
 }
 
@@ -180,6 +180,38 @@ void Autons::skills() {
 
 }
 
+//ADDED BY NOLAN PENDING REVIEW
+void Autons::skills() {
+    Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    PositionTracker* tracker = PositionTracker::get_instance();
+    tracker->start_thread();
+    tracker->enable_imu();
+    tracker->set_log_level(0);
+    tracker->set_position({0, 0, 0});
+    chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+
+// Middle Mogo LEFT
+    int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives backwards into middle mogo
+    //ADD PISTON OPEN asynchronous WITH DRIVE
+    //ADD PISTON CLOSE
+    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives back into home zone
+    chassis.turn_left(10, 300, 1000, false); //Turns towards alliance mogo
+    //ADD PISTON OPEN
+    pros::delay(1000); //delay to allow piston to fully open
+    //ADD 6 BAR LIFT Up
+    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo to drop rings
+    //ADD PISTON OPEN
+    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverses away from alliance mogo
+    //ADD 6 BAR LIFT Down
+    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo
+    //ADD PISTON CLOSE
+    //ADD 6 BAR LIFT UP
+    pros::delay(1000); //Let bridge settle
+    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward into bridge
+    //ADD PISTON OPEN
+    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge
+    //ADD 6 BAR LIFT Down
+}
 
 
 void Autons::run_autonomous() {
