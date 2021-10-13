@@ -113,7 +113,7 @@ Part 1
 
 Part 2
 1. Choose some different setpoints -- with 10 you can be confident it probably is tuned well enough (higher, lower, and everything in between). These setopints should go forward, backwards, left, or right. Variety of tests will ensure you have a robustly tuned control loop
-2. Skip this step (or don't). When it doesn't work as well for all of these setpoints re-evaluate why you chose to be sitting in the programmers chair late at night slowly losing your sanity when you have an english paper to write ordering someone to bring the robot back and plug it in while you make adjustments to the pid constants while they are dying of boredom and saying braindead, incoherent things the whole 6 hours you are trying to get this one stupid loop tuned
+2. Skip this step (or don't). When it doesn't work as well for all of these setpoints re-evaluate your life and why you chose to be sitting in the programmers chair late at night slowly losing your sanity when you have an english paper to write ordering someone to bring the robot back to the table and plug it in while you make adjustments to the pid constants while they are dying of boredom and saying braindead, incoherent things the whole 6 hours you are trying to get this one stupid loop tuned
 3. go back to part 1 and make small adjustments or do the janky trick of setting different constants for different setpoints in the autonomous
 4. Call it good enough at some point and be sure to add timeouts in the code
 
@@ -126,7 +126,7 @@ Part 2
 5. go to ```RobotCode/src/Autons.cpp```
 6. update the debug_auton_num variable in the Autons class constructor (should be the first function)
 7. ensure driver control auton is in fact 1
-8. implement the function added in the .hpp file this looks like ```void Autons::skills() {}```
+8. implement the function added in the .hpp file this looks like ```void Autons::skills() {}``` (read [this](http://www.cppforschool.com/tutorial/separate-header-and-implementation-files.html))
 9. add the code for the function between the brackets there are some default lines that you can find in the example autons (just copy them over)
 10. find the function ```run_autonomous```
 11. in the switch statement, add a case for the auton number you added in order (the case number is the number assigned to it in the .hpp file in one of the maps)
