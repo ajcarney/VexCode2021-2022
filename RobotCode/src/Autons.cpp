@@ -75,6 +75,61 @@ void Autons::skills() {
     chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
 
 
+    // Middle Mogo LEFT
+        int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives fowards into middle mogo
+        //ADD SIX BAR UP IN SYNC WITH DRIVE FOWARD
+        //ADD PISTON OPEN (score the rings in the middle tower)
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives back
+        //ADD SIX BAR Down
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into middle goal
+        //ADD PISTON CLOSE
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives back into home zone
+        chassis.turn_left(10, 300, 1000, false); //Turns away towards alliance mogo
+        //ADD MOGO HOLDER DOWN
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs into alliance mogo
+        //ADD MOGO HOLDER UP
+        chassis.turn_right(10, 300, 1000, false); //Turns towards bridge
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge a bit
+        //ADD 6 BAR LIFT Up
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into bridge
+        //ADD PISTON OPEN (scores middle mogo on bridge)
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverses away from bridge
+        //ADD 6 BAR LIFT Down
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo
+        chassis.turn_right(10, 300, 1000, false); //Turns towards middle center mogo
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into middle center mogo
+        //ADD PISTON CLOSE
+        chassis.turn_right(10, 300, 1000, false); //Turns towards bridge
+        //ADD SIX BAR UP
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into bridge
+        //ADD SIX BAR DOWN (Just a litte)
+        //ADD PISTON open
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs up slightly
+        //ADD SIX BAR UP (Just a little)
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs Away from bridge
+        //ADD SIX BAR DOWN
+        chassis.turn_right(10, 300, 1000, false); //Turns towards second alliance mogo
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into second alliance mogo
+        //ADD PISTON CLOSE
+        chassis.turn_right(10, 300, 1000, false); //Turns towards other home zone
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into other home zone
+        //ADD PISTON open
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverse a bit
+        chassis.turn_right(10, 300, 1000, false); //Turns 90 degrees left
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverse a bit
+        //ADD MOGO HOLDER DOWN
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward releasing alliance mogo
+        chassis.turn_right(10, 300, 1000, false); //Turns 90 degrees left
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward into final center mogo
+        //ADD PISTON CLOSE
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward into home zone
+        //ADD PISTON open
+        uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives backwards a bit
+
+
+
+
+
     // // tower 1
     // int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0);
     // indexer.run_upper_roller();
@@ -181,7 +236,7 @@ void Autons::skills() {
 }
 
 //ADDED BY NOLAN PENDING REVIEW
-void Autons::skills() {
+void Autons::MidMogoLeft() {
     Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     PositionTracker* tracker = PositionTracker::get_instance();
     tracker->start_thread();
@@ -206,11 +261,9 @@ void Autons::skills() {
     uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo
     //ADD PISTON CLOSE
     //ADD 6 BAR LIFT UP
-    pros::delay(1000); //Let bridge settle
-    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward into bridge
-    //ADD PISTON OPEN
-    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge
+    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
     //ADD 6 BAR LIFT Down
+
 }
 
 
@@ -225,6 +278,10 @@ void Autons::run_autonomous() {
 
         case 3:
             skills();
+            break;
+
+        case 4;
+            MidMogoLeft();
             break;
     }
 }
