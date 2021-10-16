@@ -55,8 +55,20 @@ void Autons::deploy() {
  * drives forward to score in the zone, then drive backward
  * to stop touching the cube
  */
-void Autons::one_pt() {
-    deploy();
+
+
+void Autons::pid_straight_drive() {
+  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+  PositionTracker* tracker = PositionTracker::get_instance();
+  tracker->start_thread();
+  tracker->enable_imu();
+  tracker->set_log_level(0);
+  tracker->set_position({0, 0, 0});
+  chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+  chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+
+
+    int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward to test pid_straight_drive
 }
 
 
@@ -73,6 +85,9 @@ void Autons::skills() {
     tracker->set_log_level(0);
     tracker->set_position({0, 0, 0});
     chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+    chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+
+
 
 
     // Middle Mogo LEFT
@@ -244,6 +259,8 @@ void Autons::MidMogoLeft() {
     tracker->set_log_level(0);
     tracker->set_position({0, 0, 0});
     chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+    chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+
 
 // Middle Mogo LEFT
     int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives backwards into middle mogo
@@ -273,7 +290,7 @@ void Autons::run_autonomous() {
            break;
 
         case 2:
-            one_pt();
+            pid_straight_drive();
             break;
 
         case 3:

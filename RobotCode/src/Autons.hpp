@@ -50,14 +50,14 @@ class Autons
 
         const std::unordered_map <int, const char*> AUTONOMOUS_NAMES = {
             {1, "Driver Control"},             //used to find name of auton
-            {2, "one_pt"},                     //to keep title the same
+            {2, "pid_straight_drive"},                     //to keep title the same
             {3, "skills-current"},
             {4, "Debugger"},
             {5, "Middle Mogo Left"} //ADDED BY NOLAN PENDING REVIEW
         };
         const std::unordered_map <int, const char*> AUTONOMOUS_DESCRIPTIONS = {   //used to find color of auton
             {1, "goes directly to\ndriver control"},                               //selected to keep background the same
-            {2, "deploys and thats about it"},
+            {2, "test pid_straight_drive"},
             {3, "skills auton that scores ? points"},
             {4, "opens debugger"},
             {5, "Middle Mogo, set alliance mogo"} //ADDED BY NOLAN PENDING REVIEW
@@ -91,7 +91,7 @@ class Autons
          *
          * drives forward
          */
-        void one_pt();
+        void pid_straight_drive();
 
         /**
          * @return: None

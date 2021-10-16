@@ -45,7 +45,7 @@ typedef struct {
             + "{x: " + std::to_string(this->x)
             + " y: " + std::to_string(this->y)
             + " dx: " + std::to_string(this->dx)
-            + " dy: " + std::to_string(this->dy) 
+            + " dy: " + std::to_string(this->dy)
             + " radius: " + std::to_string(this->radius)
             + " dtheta: " + std::to_string(this->dtheta)
             + "}"
@@ -70,11 +70,11 @@ typedef struct {
 } chassis_params;
 
 typedef struct {
-    double kP=1;
-    double kI=0;
-    double kD=0;
-    double i_max=INT32_MAX;
-    double motor_slew=INT32_MAX;
+    double kP=1; //error = sensor reading-target reading           kP x error + ki x intergal + kD x derivative
+    double kI=0; //How fast it settles
+    double kD=0; //Rate of change settle the program
+    double i_max=INT32_MAX; //limits the max intergal
+    double motor_slew=INT32_MAX; //max rate of voltage change
 } pid_gains;
 
 
@@ -93,41 +93,41 @@ typedef struct {
  */
 class Chassis
 {
-    private:        
+    private:
         static Motor *front_left_drive;
         static Motor *front_right_drive;
         static Motor *back_left_drive;
-        static Motor *back_right_drive;       
-         
+        static Motor *back_right_drive;
+
         static Encoder* left_encoder;
         static Encoder* right_encoder;
-        
+
         pros::Task *thread;  // the motor thread
         static std::queue<chassis_action> command_queue;
         static std::vector<int> commands_finished;
         static std::atomic<bool> command_start_lock;
         static std::atomic<bool> command_finish_lock;
         static int num_instances;
-        
+
         static pid_gains pid_sdrive_gains;
         static pid_gains profiled_sdrive_gains;
         static pid_gains okapi_sdrive_gains;
         static pid_gains heading_gains;
         static pid_gains turn_gains;
-        
+
         static double get_angle_to_turn(double x, double y, int explicit_direction=1);
         static double get_angle_to_turn(double theta);
-        
+
         static void t_pid_straight_drive(chassis_params args);  // functions called by thread for asynchronous movement
         static void t_okapi_pid_straight_drive(chassis_params args);
         static void t_profiled_straight_drive(chassis_params args);
         static void t_turn(chassis_params args);
         static void t_move_to_waypoint(chassis_params args, waypoint point);
-        
+
         static double wheel_diameter;
         static double width;
         static double gear_ratio;
-                
+
         static void chassis_motion_task(void*);
 
 
@@ -150,7 +150,7 @@ class Chassis
         void set_okapi_sdrive_gains(pid_gains new_gains);
         void set_heading_gains(pid_gains new_gains);
         void set_turn_gains(pid_gains new_gains);
-        
+
         /**
          * @param: int voltage -> the voltage on interval [-127, 127] to set the motor to
          * @return: None
@@ -183,18 +183,18 @@ class Chassis
         /**
          * @param: int speed -> the new speed the slew rate controller
          * @return: None
-         *         
+         *
          * sets the internal slew rate of the motor and enables it
          */
         void enable_slew( int rate=120 );
-        
+
         /**
          * @return: None
-         *         
+         *
          * disables internal slew rate of the motor
          */
         void disable_slew( );
-        
+
         void wait_until_finished(int uid);
         bool is_finished(int uid);
 
