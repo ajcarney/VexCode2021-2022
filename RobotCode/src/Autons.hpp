@@ -52,22 +52,25 @@ class Autons
             {1, "Driver Control"},             //used to find name of auton
             {2, "pid_straight_drive"},                     //to keep title the same
             {3, "skills-current"},
-            {4, "Debugger"},
-            {5, "Middle Mogo Left"} //ADDED BY NOLAN PENDING REVIEW
+            {4, "Win Point"},
+            {5, "Middle Mogo Left"}, //ADDED BY NOLAN PENDING REVIEW
+            {6, "Debugger"},
         };
         const std::unordered_map <int, const char*> AUTONOMOUS_DESCRIPTIONS = {   //used to find color of auton
             {1, "goes directly to\ndriver control"},                               //selected to keep background the same
             {2, "test pid_straight_drive"},
             {3, "skills auton that scores ? points"},
-            {4, "opens debugger"},
-            {5, "Middle Mogo, set alliance mogo"} //ADDED BY NOLAN PENDING REVIEW
+            {4, "Gets auton win point"},
+            {5, "Middle Mogo, set alliance mogo"}, //ADDED BY NOLAN PENDING REVIEW
+            {6, "opens debugger"},
         };
         const std::unordered_map <int, std::string> AUTONOMOUS_COLORS = {
             {1, "none"},                     //used to find color of auton
             {2, "none"},                     //selected to keep background the same
             {3, "none"},
             {4, "none"},
-            {5, "none"} //ADDED BY NOLAN PENDING REVIEW
+            {5, "none"},
+            {6, "none"}
         };
 
         void set_autonomous_number(int n);
@@ -109,6 +112,7 @@ class Autons
          *
          * runs Middle Mogo Left
          */
+        void win_point(); //ADDED BY NOLAN PENDING REVIEW
 
         void MidMogoLeft(); //ADDED BY NOLAN PENDING REVIEW
 
