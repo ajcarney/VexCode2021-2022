@@ -33,20 +33,20 @@
 
 #include "main.h"
 
-#define BR_MOTOR                  1
-#define MR_MOTOR                  6
-#define FR_MOTOR                  11
-#define BL_MOTOR                  7
-#define ML_MOTOR                  9
-#define FL_MOTOR                  20
-#define MOGO_MOTOR                10
-#define LIFT_MOTOR                16
+#define BR_MOTOR                  19
+#define MR_MOTOR                  20
+#define FR_MOTOR                  10
+#define BL_MOTOR                  14
+#define ML_MOTOR                  15
+#define FL_MOTOR                  2
+#define MOGO_MOTOR                13
+#define LIFT_MOTOR                1
 
 #define BR_REVERSED               0
 #define MR_REVERSED               1
 #define FR_REVERSED               0
 #define BL_REVERSED               1
-#define ML_REVERSED               1
+#define ML_REVERSED               0
 #define FL_REVERSED               1
 #define MOGO_REVERSED             1
 #define LIFT_REVERSED             0

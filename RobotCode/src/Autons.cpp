@@ -59,8 +59,8 @@ void Autons::deploy() {
 
 void Autons::pid_straight_drive() {
   Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
-  LiftController lift(Motors::lift);
-  MogoController mogo(Motors::mogo_lift);
+  //LiftController lift(Motors::lift);
+  //MogoController mogo(Motors::mogo_lift);
   PositionTracker* tracker = PositionTracker::get_instance();
   tracker->start_thread();
   tracker->enable_imu();
@@ -82,8 +82,8 @@ void Autons::pid_straight_drive() {
  */
 void Autons::skills() {
   Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
-  LiftController lift(Motors::lift);
-  MogoController mogo(Motors::mogo_lift);
+//  LiftController lift(Motors::lift);
+//  MogoController mogo(Motors::mogo_lift);
   PositionTracker* tracker = PositionTracker::get_instance();
   tracker->start_thread();
   tracker->enable_imu();
@@ -98,37 +98,37 @@ void Autons::skills() {
 
     //Skills Auton
         int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives fowards into middle mogo
-        lift.move_to(50, false); //Move lift up
+    //    lift.move_to(50, false); //Move lift up
         Motors::piston1.set_value(false);   //ADD PISTON OPEN to drop rings into mogo
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives back
-        lift.move_to(-50, false); //ADD SIX BAR LIFT Down
+    //    lift.move_to(-50, false); //ADD SIX BAR LIFT Down
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into middle goal
         Motors::piston1.set_value(true);   //ADD PISTON OPEN to drip rings into
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives back into home zone
         chassis.turn_left(10, 300, 1000, false); //Turns away towards alliance mogo
-        mogo.move_to(-50,false);   //ADD MOGO HOLDER DOWN
+      //  mogo.move_to(-50,false);   //ADD MOGO HOLDER DOWN
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs into alliance mogo
-        mogo.move_to(50,false); //Lifts alliance mogo
+      //  mogo.move_to(50,false); //Lifts alliance mogo
         chassis.turn_right(10, 300, 1000, false); //Turns towards bridge
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge a bit
-        lift.move_to(50, false); //ADD 6 BAR LIFT Up
+      //  lift.move_to(50, false); //ADD 6 BAR LIFT Up
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into bridge
         Motors::piston1.set_value(false);   //ADD PISTON OPEN (scores middle mogo on bridge)
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverses away from bridge
-        lift.move_to(-50, false);   //ADD 6 BAR LIFT Down
+        //lift.move_to(-50, false);   //ADD 6 BAR LIFT Down
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo
         chassis.turn_right(10, 300, 1000, false); //Turns towards middle center mogo
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into middle center mogo
         Motors::piston1.set_value(true);   //ADD PISTON CLOSE
         chassis.turn_right(10, 300, 1000, false); //Turns towards bridge
-        lift.move_to(50, false);    //ADD SIX BAR UP
+      //  lift.move_to(50, false);    //ADD SIX BAR UP
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into bridge
-        lift.move_to(-50, false); //ADD SIX BAR DOWN (Just a litte)
+    //    lift.move_to(-50, false); //ADD SIX BAR DOWN (Just a litte)
         Motors::piston1.set_value(false); //ADD PISTON open
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs up slightly
-        lift.move_to(50, false);//ADD SIX BAR UP (Just a little)
+      //  lift.move_to(50, false);//ADD SIX BAR UP (Just a little)
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs Away from bridge
-        lift.move_to(-50, false);//ADD SIX BAR DOWN
+    //    lift.move_to(-50, false);//ADD SIX BAR DOWN
         chassis.turn_right(10, 300, 1000, false); //Turns towards second alliance mogo
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into second alliance mogo
         Motors::piston1.set_value(true);   //ADD PISTON CLOSE
@@ -138,7 +138,7 @@ void Autons::skills() {
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverse a bit
         chassis.turn_right(10, 300, 1000, false); //Turns 90 degrees left
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverse a bit
-        mogo.move_to(-50,false); //ADD MOGO HOLDER DOWN
+      //  mogo.move_to(-50,false); //ADD MOGO HOLDER DOWN
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward releasing alliance mogo
         chassis.turn_right(10, 300, 1000, false); //Turns 90 degrees left
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives foward into final center mogo
@@ -255,8 +255,8 @@ void Autons::skills() {
     // chassis.okapi_pid_straight_drive(-500, 4000, 4000, false, 0);
     void Autons::win_point() {
       Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
-      LiftController lift(Motors::lift);
-      MogoController mogo(Motors::mogo_lift);
+    //  LiftController lift(Motors::lift);
+    //  MogoController mogo(Motors::mogo_lift);
       PositionTracker* tracker = PositionTracker::get_instance();
       tracker->start_thread();
       tracker->enable_imu();
@@ -267,11 +267,11 @@ void Autons::skills() {
 
   // Win Point
       int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //Drives forwards a bit
-      lift.move_to(50, true); //Moves lift up
+  //    lift.move_to(50, true); //Moves lift up
       chassis.wait_until_finished(uid); //waits for previous statements to finish
       Motors::piston1.set_value(false); //Opens clamp to drop rings into mogo
       uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //drive backwards a bit
-      lift.move_to(-50, true); //Moves lift down
+  //    lift.move_to(-50, true); //Moves lift down
       chassis.wait_until_finished(uid); //waits for previous statements to finish
       uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //drive foward a bit
       Motors::piston1.set_value(false); //clamps onto mogo
@@ -281,18 +281,18 @@ void Autons::skills() {
       uid = chassis.okapi_pid_straight_drive(770, 6000, 2500, false, 0); //drive foward a bit
       chassis.turn_left(10, 300, 1000, false); //Turns away other alliance mogo
       uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //drive to other alliance mogo
-      mogo.move_to(-50,true); //Puts the mogo holder down  a bit
+  //    mogo.move_to(-50,true); //Puts the mogo holder down  a bit
       chassis.wait_until_finished(uid); //waits for previous statements to finish
       chassis.turn_left(10, 300, 1000, false); //Turns so rings can be scored
-      mogo.move_to(-50,false); //ADD MOGO HOLDER DOWN
+  //    mogo.move_to(-50,false); //ADD MOGO HOLDER DOWN
       uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //drive foward a bit
-      mogo.move_to(-50,false); //Move the mogo holder down all the way
+  //    mogo.move_to(-50,false); //Move the mogo holder down all the way
       uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //backs into mogo
-      mogo.move_to(-50,false); //Move the mogo holder up to secure mogo
+//      mogo.move_to(-50,false); //Move the mogo holder up to secure mogo
       uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //drives foward
       chassis.turn_right(10, 300, 1000, true); //Turns so rings can be scored
       chassis.wait_until_finished(uid); //waits for previous statements to finish
-      mogo.move_to(-50,false); //drops mogo onto safe ground
+//      mogo.move_to(-50,false); //drops mogo onto safe ground
 
 }
 
@@ -300,8 +300,8 @@ void Autons::skills() {
 //ADDED BY NOLAN PENDING REVIEW
 void Autons::MidMogoLeft() {
     Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
-    LiftController lift(Motors::lift);
-    MogoController mogo(Motors::mogo_lift);
+  //  LiftController lift(Motors::lift);
+  //  MogoController mogo(Motors::mogo_lift);
     PositionTracker* tracker = PositionTracker::get_instance();
     tracker->start_thread();
     tracker->enable_imu();
@@ -320,16 +320,16 @@ void Autons::MidMogoLeft() {
     chassis.turn_left(10, 300, 1000, false); //Turns towards alliance mogo
     Motors::piston2.set_value(false);  //ADD PISTON OPEN
     pros::delay(1000); //delay to allow piston to fully open
-    lift.move_to(50, false); //ADD 6 BAR LIFT Up
+//    lift.move_to(50, false); //ADD 6 BAR LIFT Up
     uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo to drop rings
     Motors::piston1.set_value(true);  //ADD PISTON OPEN
     uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverses away from alliance mogo
-    lift.move_to(50, false);  //ADD 6 BAR LIFT Down
+//    lift.move_to(50, false);  //ADD 6 BAR LIFT Down
     uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo
     Motors::piston1.set_value(false);  //ADD PISTON CLOSE
-    lift.move_to(50, false);  //ADD 6 BAR LIFT UP
+//    lift.move_to(50, false);  //ADD 6 BAR LIFT UP
     uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
-    lift.move_to(50, false);  //ADD 6 BAR LIFT Down
+//    lift.move_to(50, false);  //ADD 6 BAR LIFT Down
 
 }
 
@@ -347,10 +347,11 @@ void Autons::run_autonomous() {
             skills();
             break;
 
-        case 4;
+        case 4:
             win_point();
             break;
-        case 4;
+
+        case 5:
             MidMogoLeft();
             break;
     }
