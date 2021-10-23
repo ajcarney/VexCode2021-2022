@@ -53,7 +53,7 @@
 
 
 #define PISTON1_MOTOR            'C'
-#define PISTON2_MOTOR            'D'
+#define PISTON2_MOTOR            'B'
 
 // @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges
 #define CHASSIS_GEARSET           pros::E_MOTOR_GEARSET_06

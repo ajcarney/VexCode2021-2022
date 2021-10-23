@@ -281,7 +281,7 @@ void Autons::skills() {
       uid = chassis.okapi_pid_straight_drive(770, 6000, 2500, false, 0); //drive foward a bit
       chassis.turn_left(10, 300, 1000, false); //Turns away other alliance mogo
       uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //drive to other alliance mogo
-  //    mogo.move_to(-50,true); //Puts the mogo holder down  a bit
+  //  mogo_lift.move_to(-50,true); //Puts the mogo holder down  a bit
       chassis.wait_until_finished(uid); //waits for previous statements to finish
       chassis.turn_left(10, 300, 1000, false); //Turns so rings can be scored
   //    mogo.move_to(-50,false); //ADD MOGO HOLDER DOWN
@@ -320,7 +320,7 @@ void Autons::MidMogoLeft() {
     chassis.turn_left(10, 300, 1000, false); //Turns towards alliance mogo
     Motors::piston2.set_value(false);  //ADD PISTON OPEN
     pros::delay(1000); //delay to allow piston to fully open
-//    lift.move_to(50, false); //ADD 6 BAR LIFT Up
+  //  Motors::lift.move_to(50, false); //ADD 6 BAR LIFT Up
     uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo to drop rings
     Motors::piston1.set_value(true);  //ADD PISTON OPEN
     uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverses away from alliance mogo
