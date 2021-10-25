@@ -58,7 +58,7 @@ void Autons::deploy() {
 
 
 void Autons::pid_straight_drive() {
-  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
   //LiftController lift(Motors::lift);
   //MogoController mogo(Motors::mogo_lift);
   PositionTracker* tracker = PositionTracker::get_instance();
@@ -67,11 +67,11 @@ void Autons::pid_straight_drive() {
   tracker->set_log_level(0);
   tracker->set_position({0, 0, 0});
   chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
-  chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+  chassis.set_okapi_sdrive_gains({20, 5, 0.00000001, INT32_MAX, INT32_MAX});
 
 
-
-    int uid = chassis.okapi_pid_straight_drive(1000, 6000, 2500, false, 0); //Drives foward to test pid_straight_drive
+  chassis.turn_left(51.5, 300, 1000, false); //Turn PID test
+//    int uid = chassis.okapi_pid_straight_drive(1000, 6000, 1000, false, 0); //Drives foward to test pid_straight_drive
 }
 
 
@@ -81,7 +81,7 @@ void Autons::pid_straight_drive() {
  * skills autonomous
  */
 void Autons::skills() {
-  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
 //  LiftController lift(Motors::lift);
 //  MogoController mogo(Motors::mogo_lift);
   PositionTracker* tracker = PositionTracker::get_instance();
@@ -254,7 +254,7 @@ void Autons::skills() {
     // intakes.stop();
     // chassis.okapi_pid_straight_drive(-500, 4000, 4000, false, 0);
     void Autons::win_point() {
-      Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+      Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     //  LiftController lift(Motors::lift);
     //  MogoController mogo(Motors::mogo_lift);
       PositionTracker* tracker = PositionTracker::get_instance();
@@ -299,7 +299,7 @@ void Autons::skills() {
 
 //ADDED BY NOLAN PENDING REVIEW
 void Autons::MidMogoLeft() {
-    Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
   //  LiftController lift(Motors::lift);
   //  MogoController mogo(Motors::mogo_lift);
     PositionTracker* tracker = PositionTracker::get_instance();
@@ -308,27 +308,30 @@ void Autons::MidMogoLeft() {
     tracker->set_log_level(0);
     tracker->set_position({0, 0, 0});
     chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
-    chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+    chassis.set_okapi_sdrive_gains({10, 0.00001, 1, INT32_MAX, INT32_MAX});
 
 
 // Middle Mogo LEFT
-    int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //Drives backwards into middle mogo
-    Motors::piston2.set_value(false);    //ADD PISTON OPEN asynchronous WITH DRIVE
+  //  Motors::piston2.set_value(false);    //ADD PISTON OPEN asynchronous WITH DRIVE
+  Motors::piston1.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    int uid = chassis.okapi_pid_straight_drive(-2200, 6000, 2000, true, 0); //Drives backwards into middle mogo
+    Motors::piston2.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
     chassis.wait_until_finished(uid);
-    Motors::piston2.set_value(true);   //ADD PISTON CLOSE
-    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives back into home zone
-    chassis.turn_left(10, 300, 1000, false); //Turns towards alliance mogo
+    Motors::piston2.set_value(false);   //ADD PISTON CLOSE
+    uid = chassis.okapi_pid_straight_drive(1500, 6000, 1300, false, 0); //Drives back into home zone
+    chassis.turn_left(47, 300, 1000, false); //Turns towards alliance mogo
     Motors::piston2.set_value(false);  //ADD PISTON OPEN
-    pros::delay(1000); //delay to allow piston to fully open
-  //  Motors::lift.move_to(50, false); //ADD 6 BAR LIFT Up
-    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo to drop rings
-    Motors::piston1.set_value(true);  //ADD PISTON OPEN
-    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Reverses away from alliance mogo
+    pros::delay(500); //delay to allow piston to fully open
+  //   Motors::lift.move_to(50, false); //ADD 6 BAR LIFT Up
+    uid = chassis.okapi_pid_straight_drive(600, 6000, 380, false, 0); //Drives into alliance mogo to drop rings
+    Motors::piston1.set_value(false);  //ADD PISTON OPEN
+    pros::delay(500);
+    uid = chassis.okapi_pid_straight_drive(-600, 6000, 380, false, 0); //Reverses away from alliance mogo
 //    lift.move_to(50, false);  //ADD 6 BAR LIFT Down
-    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo
-    Motors::piston1.set_value(false);  //ADD PISTON CLOSE
+//    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives into alliance mogo
+//    Motors::piston1.set_value(false);  //ADD PISTON CLOSE
 //    lift.move_to(50, false);  //ADD 6 BAR LIFT UP
-    uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
+  //  uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
 //    lift.move_to(50, false);  //ADD 6 BAR LIFT Down
 
 }

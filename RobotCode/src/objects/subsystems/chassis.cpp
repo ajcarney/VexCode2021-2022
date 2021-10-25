@@ -90,6 +90,8 @@ Motor* Chassis::front_left_drive;
 Motor* Chassis::front_right_drive;
 Motor* Chassis::back_left_drive;
 Motor* Chassis::back_right_drive;
+Motor* Chassis::mid_left_drive;
+Motor* Chassis::mid_right_drive;
 
 Encoder* Chassis::left_encoder;
 Encoder* Chassis::right_encoder;
@@ -105,12 +107,14 @@ pid_gains Chassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
 pid_gains Chassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
 
 
-Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing /*1*/, double wheel_size /*4.05*/)
+Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &mid_left, Motor &mid_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing /*1*/, double wheel_size /*4.05*/)
 {
     front_left_drive = &front_left;
     front_right_drive = &front_right;
     back_left_drive = &back_left;
     back_right_drive = &back_right;
+    mid_left_drive = &mid_left
+    mid_right_drive = &mid_right
 
     left_encoder = &l_encoder;
     right_encoder = &r_encoder;
@@ -129,16 +133,25 @@ Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor
     front_right_drive->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
     back_left_drive->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
     back_right_drive->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    mid_right_drive->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    mid_left_drive->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
 
     front_left_drive->set_motor_mode(e_voltage);
     front_right_drive->set_motor_mode(e_voltage);
     back_left_drive->set_motor_mode(e_voltage);
     back_right_drive->set_motor_mode(e_voltage);
+    mid_right_drive->set_motor_mode(e_voltage);
+    mid_left_drive->set_motor_mode(e_voltage);
+
 
     front_left_drive->disable_slew();
     front_right_drive->disable_slew();
     back_left_drive->disable_slew();
     back_right_drive->disable_slew();
+    mid_right_drive->disable_slew();
+    mid_left_drive->disable_slew();
+
 }
 
 
@@ -410,11 +423,18 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
     front_right_drive->disable_driver_control();
     back_left_drive->disable_driver_control();
     back_right_drive->disable_driver_control();
+    mid_right_drive->disable_driver_control();
+    mid_left_drive->disable_driver_control();
+
 
     front_left_drive->set_motor_mode(e_builtin_velocity_pid);
     front_right_drive->set_motor_mode(e_builtin_velocity_pid);
     back_left_drive->set_motor_mode(e_builtin_velocity_pid);
     back_right_drive->set_motor_mode(e_builtin_velocity_pid);
+    mid_right_drive->set_motor_mode(e_builtin_velocity_pid);
+    mid_left_drive->set_motor_mode(e_builtin_velocity_pid);
+
+
 
     int r_id = right_encoder->get_unique_id(true);
     int l_id = left_encoder->get_unique_id(true);
@@ -642,11 +662,16 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
     front_right_drive->disable_driver_control();
     back_left_drive->disable_driver_control();
     back_right_drive->disable_driver_control();
+    mid_right_drive->disable_driver_control();
+    mid_left_drive->disable_driver_control();
 
     front_left_drive->set_motor_mode(e_voltage);
     front_right_drive->set_motor_mode(e_voltage);
     back_left_drive->set_motor_mode(e_voltage);
     back_right_drive->set_motor_mode(e_voltage);
+    mid_right_drive->set_motor_mode(e_builtin_velocity_pid);
+    mid_left_drive->set_motor_mode(e_builtin_velocity_pid);
+
 
     int r_id = right_encoder->get_unique_id(true);
     int l_id = left_encoder->get_unique_id(true);
@@ -709,6 +734,9 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
         front_right_drive->set_voltage(right_voltage);
         back_left_drive->set_voltage(left_voltage);
         back_right_drive->set_voltage(right_voltage);
+        mid_right_drive->set_voltage(right_voltage);
+        mid_left_drive->set_voltage(right_voltage);
+
 
         pros::delay(10);
     }
@@ -717,11 +745,17 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
     front_right_drive->set_voltage(0);
     back_left_drive->set_voltage(0);
     back_right_drive->set_voltage(0);
+    mid_right_drive->set_voltage(0);
+    mid_left_drive->set_voltage(0);
+
 
     front_left_drive->enable_driver_control();
     front_right_drive->enable_driver_control();
     back_left_drive->enable_driver_control();
     back_right_drive->enable_driver_control();
+    mid_right_drive->enable_driver_control();
+    mid_left_drive->enable_driver_control();
+
 
     right_encoder->forget_position(r_id);  // free up space in the encoders log
     left_encoder->forget_position(l_id);

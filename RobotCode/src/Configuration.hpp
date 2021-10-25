@@ -49,7 +49,7 @@
 #define ML_REVERSED               0
 #define FL_REVERSED               1
 #define MOGO_REVERSED             1
-#define LIFT_REVERSED             0
+#define LIFT_REVERSED             1
 
 
 #define PISTON1_MOTOR            'C'

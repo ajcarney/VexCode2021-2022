@@ -37,7 +37,7 @@ void driver_control(void*)
 
     Controller controllers;
 
-    Chassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, CHASSIS_WIDTH, CHASSIS_GEAR_RATIO);
+    Chassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_right, Motors::mid_left, Sensors::left_encoder, Sensors::right_encoder, CHASSIS_WIDTH, CHASSIS_GEAR_RATIO);
     LiftController lift{Motors::lift};
     MogoController mogo{Motors::mogo_lift};
 

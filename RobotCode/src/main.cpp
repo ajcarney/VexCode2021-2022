@@ -100,7 +100,7 @@ void autonomous() {
  void log_thread_fn( void* )
  {
      Logger logger;
-     Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+     Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
 
      double kP = Configuration::chassis_pid.kP;
      double kI = Configuration::chassis_pid.kI;
@@ -211,7 +211,7 @@ void opcontrol() {
     Controller controllers;
     DriverControlLCD lcd;
 
-    Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     PositionTracker* tracker = PositionTracker::get_instance();
     tracker->enable_imu();
     tracker->start_thread();

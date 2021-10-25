@@ -70,9 +70,9 @@ typedef struct {
 } chassis_params;
 
 typedef struct {
-    double kP=1; //error = sensor reading-target reading           kP x error + ki x intergal + kD x derivative
-    double kI=0; //How fast it settles
-    double kD=0; //Rate of change settle the program
+    double kP=20; //error = sensor reading-target reading           kP x error + ki x intergal + kD x derivative
+    double kI= 5; //How fast it settles
+    double kD= 0.00000001; //Rate of change settle the program
     double i_max=INT32_MAX; //limits the max intergal
     double motor_slew=INT32_MAX; //max rate of voltage change
 } pid_gains;
@@ -132,7 +132,7 @@ class Chassis
 
 
     public:
-        Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
+        Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &middle_right, Motor &middle_left, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
         ~Chassis();
 
         int pid_straight_drive(double encoder_ticks, int relative_heading=0, int max_velocity=450, int timeout=INT32_MAX, bool asynch=false, bool correct_heading=true, double slew=0.2, bool log_data=false);
