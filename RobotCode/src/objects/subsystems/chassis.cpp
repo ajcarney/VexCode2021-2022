@@ -113,8 +113,8 @@ Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor
     front_right_drive = &front_right;
     back_left_drive = &back_left;
     back_right_drive = &back_right;
-    mid_left_drive = &mid_left
-    mid_right_drive = &mid_right
+    mid_left_drive = &mid_left;
+    mid_right_drive = &mid_right;
 
     left_encoder = &l_encoder;
     right_encoder = &r_encoder;

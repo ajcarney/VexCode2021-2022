@@ -98,6 +98,9 @@ class Chassis
         static Motor *front_right_drive;
         static Motor *back_left_drive;
         static Motor *back_right_drive;
+        static Motor *mid_right_drive;
+        static Motor *mid_left_drive;
+
 
         static Encoder* left_encoder;
         static Encoder* right_encoder;
@@ -132,7 +135,7 @@ class Chassis
 
 
     public:
-        Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &middle_right, Motor &middle_left, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
+        Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &mid_right, Motor &mid_left, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
         ~Chassis();
 
         int pid_straight_drive(double encoder_ticks, int relative_heading=0, int max_velocity=450, int timeout=INT32_MAX, bool asynch=false, bool correct_heading=true, double slew=0.2, bool log_data=false);
