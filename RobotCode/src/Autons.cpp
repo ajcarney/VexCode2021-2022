@@ -268,34 +268,23 @@ void Autons::skills() {
       chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
 
   // Win Point
-      int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //Drives forwards a bit
-  //    lift.move_to(50, true); //Moves lift up
-      chassis.wait_until_finished(uid); //waits for previous statements to finish
+      lift.move_to(50, false); //Moves lift up
+      int uid = chassis.okapi_pid_straight_drive(400, 6000, 200, true, 0); //drive forward a bit
       Motors::piston1.set_value(false); //Opens clamp to drop rings into mogo
-      uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //drive backwards a bit
-  //    lift.move_to(-50, true); //Moves lift down
+      uid = chassis.okapi_pid_straight_drive(-400, 6000, 200, true, 0); //drive backwards a bit
+      lift.move_to(-50, true); //Moves lift down
       chassis.wait_until_finished(uid); //waits for previous statements to finish
-      uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //drive foward a bit
-      Motors::piston1.set_value(false); //clamps onto mogo
-      uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //drive backwards a bit
-      Motors::piston1.set_value(false); //drops mogo
-      chassis.turn_left(10, 300, 1000, false); //Turns towards middle
-      uid = chassis.okapi_pid_straight_drive(770, 6000, 2500, false, 0); //drive foward a bit
-      chassis.turn_left(10, 300, 1000, false); //Turns away other alliance mogo
-      uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //drive to other alliance mogo
-  //  mogo_lift.move_to(-50,true); //Puts the mogo holder down  a bit
-      chassis.wait_until_finished(uid); //waits for previous statements to finish
-      chassis.turn_left(10, 300, 1000, false); //Turns so rings can be scored
-  //    mogo.move_to(-50,false); //ADD MOGO HOLDER DOWN
-      uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //drive foward a bit
-  //    mogo.move_to(-50,false); //Move the mogo holder down all the way
-      uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //backs into mogo
-//      mogo.move_to(-50,false); //Move the mogo holder up to secure mogo
-      uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, true, 0); //drives foward
-      chassis.turn_right(10, 300, 1000, true); //Turns so rings can be scored
-      chassis.wait_until_finished(uid); //waits for previous statements to finish
-//      mogo.move_to(-50,false); //drops mogo onto safe ground
-
+      chassis.turn_right(51.5, 300, 1000, false); //Turns right
+      uid = chassis.okapi_pid_straight_drive(-1000, 6000, 800, false, 0); //drive foward a bit
+      chassis.turn_right(51.5, 300, 1000, false); //Turns right
+      uid = chassis.okapi_pid_straight_drive(-3500, 6000, 3200, false, 0); //drive backwards a bit
+      mogo.move_to(-50, false);
+      uid = chassis.okapi_pid_straight_drive(-1000, 6000, 800, false, 0); //drive backwards a bit
+      mogo.move_to(50, false);
+      pros::delay(500);
+      lift.move_to(50, false);
+      pros::delay(500);
+      uid = chassis.okapi_pid_straight_drive(1000, 6000, 800, false, 0); //drive backwards a bit
 }
 
 
@@ -326,7 +315,7 @@ void Autons::MidMogoLeft() {
     chassis.turn_left(60, 300, 1000, false); //Turns towards alliance mogo
     Motors::piston2.set_value(false);  //ADD PISTON CLOSE
     pros::delay(500); //let turn settle
-    Motors::lift.move_to(50, false); //ADD 6 BAR LIFT Up
+    lift.move_to(50, false);  //ADD 6 BAR LIFT UP
     uid = chassis.okapi_pid_straight_drive(600, 6000, 380, false, 0); //Drives into alliance mogo to drop rings
     Motors::piston1.set_value(false);  //ADD PISTON OPEN
     pros::delay(500);
@@ -337,7 +326,7 @@ void Autons::MidMogoLeft() {
     lift.move_to(50, false);  //ADD 6 BAR LIFT UP
     uid = chassis.okapi_pid_straight_drive(150, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
     Motors::piston1.set_value(false);
-    uid = chassis.okapi_pid_straight_drive(-300), 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
+    uid = chassis.okapi_pid_straight_drive(-300, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
     lift.move_to(50, false);  //ADD 6 BAR LIFT Down
 
 }
