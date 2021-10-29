@@ -29,6 +29,9 @@ namespace Sensors
 
     extern pros::Imu imu;
     extern bool imu_is_calibrated;
+    
+    extern AnalogInSensor lift_potentiometer;
+    extern AnalogInSensor mogo_potentiometer;
 
     extern RGBLedString rgb_leds;
 

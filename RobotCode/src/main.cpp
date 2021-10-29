@@ -106,7 +106,7 @@ void autonomous() {
      double kP = Configuration::chassis_pid.kP;
      double kI = Configuration::chassis_pid.kI;
      double kD = Configuration::chassis_pid.kD;
-     double I_max = Configuration::chassis_pid.I_max;
+     double I_max = Configuration::chassis_pid.i_max;
 
      int l_id = Sensors::left_encoder.get_unique_id();
      int r_id = Sensors::right_encoder.get_unique_id();

@@ -18,6 +18,7 @@
 
 #include "../motors/Motor.hpp"
 #include "../sensors/Sensors.hpp"
+#include "../../Configuration.hpp"
 
 
 std::vector<double> generate_chassis_velocity_profile(int encoder_ticks, const std::function<double(double)>& max_acceleration, double max_decceleration, double max_velocity, double initial_velocity);
@@ -69,13 +70,6 @@ typedef struct {
     bool log_data=false;
 } chassis_params;
 
-typedef struct {
-    double kP=0.001; //error = sensor reading-target reading           kP x error + ki x intergal + kD x derivative
-    double kI= 0.0001; //How fast it settles
-    double kD= 0; //Rate of change settle the program
-    double i_max=INT32_MAX; //limits the max intergal
-    double motor_slew=INT32_MAX; //max rate of voltage change
-} pid_gains;
 
 
 typedef struct {
@@ -112,11 +106,11 @@ class Chassis
         static std::atomic<bool> command_finish_lock;
         static int num_instances;
 
-        static pid_gains pid_sdrive_gains;
-        static pid_gains profiled_sdrive_gains;
-        static pid_gains okapi_sdrive_gains;
-        static pid_gains heading_gains;
-        static pid_gains turn_gains;
+        static pid pid_sdrive_gains;
+        static pid profiled_sdrive_gains;
+        static pid okapi_sdrive_gains;
+        static pid heading_gains;
+        static pid turn_gains;
 
         static double get_angle_to_turn(double x, double y, int explicit_direction=1);
         static double get_angle_to_turn(double theta);
@@ -148,11 +142,11 @@ class Chassis
         int turn_to_point(double x, double y, int max_velocity=450, int timeout=INT32_MAX, bool asynch = false, double slew=10, bool log_data=false);
         int turn_to_angle(double theta, int max_velocity=450, int timeout=INT32_MAX, bool asynch = false, double slew=10, bool log_data=false);
 
-        void set_pid_sdrive_gains(pid_gains new_gains);
-        void set_profiled_sdrive_gains(pid_gains new_gains);
-        void set_okapi_sdrive_gains(pid_gains new_gains);
-        void set_heading_gains(pid_gains new_gains);
-        void set_turn_gains(pid_gains new_gains);
+        void set_pid_sdrive_gains(pid new_gains);
+        void set_profiled_sdrive_gains(pid new_gains);
+        void set_okapi_sdrive_gains(pid new_gains);
+        void set_heading_gains(pid new_gains);
+        void set_turn_gains(pid new_gains);
 
         /**
          * @param: int voltage -> the voltage on interval [-127, 127] to set the motor to

@@ -43,7 +43,7 @@ Motor::Motor( int port, pros::motor_gearset_e_t gearset, bool reversed )
     internal_motor_pid.kP = Configuration::internal_motor_pid.kP;
     internal_motor_pid.kI = Configuration::internal_motor_pid.kI;
     internal_motor_pid.kD = Configuration::internal_motor_pid.kD;
-    internal_motor_pid.I_max = Configuration::internal_motor_pid.I_max;
+    internal_motor_pid.i_max = Configuration::internal_motor_pid.i_max;
     integral = 0;
     prev_error = 0;
 
@@ -76,7 +76,7 @@ Motor::Motor(int port, pros::motor_gearset_e_t gearset, bool reversed, pid pid_c
     internal_motor_pid.kP = pid_consts.kP;
     internal_motor_pid.kI = pid_consts.kI;
     internal_motor_pid.kD = pid_consts.kD;
-    internal_motor_pid.I_max = pid_consts.I_max;
+    internal_motor_pid.i_max = pid_consts.i_max;
     integral = 0;
     prev_error = 0;
 
@@ -189,7 +189,7 @@ int Motor::get_target_voltage( int delta_t )
     double kP = internal_motor_pid.kP;
     double kI = internal_motor_pid.kI;
     double kD = internal_motor_pid.kD;
-    double I_max = internal_motor_pid.I_max;
+    double i_max = internal_motor_pid.i_max;
 
     int voltage;
     int calculated_target_voltage = voltage_setpoint;
@@ -198,7 +198,7 @@ int Motor::get_target_voltage( int delta_t )
     if ( mode == e_custom_velocity_pid && voltage_setpoint == prev_voltage_setpoint )
     {
         int error =  to_velocity(voltage_setpoint) - get_actual_velocity();
-        if ( std::abs(integral) > I_max )
+        if ( std::abs(integral) > i_max )
         {
             integral = 0;
         }
@@ -562,7 +562,7 @@ int Motor::set_pid( pid pid_consts )
         internal_motor_pid.kP = pid_consts.kP;
         internal_motor_pid.kI = pid_consts.kI;
         internal_motor_pid.kD = pid_consts.kD;
-        internal_motor_pid.I_max = pid_consts.I_max;
+        internal_motor_pid.i_max = pid_consts.i_max;
     }
     catch(...) //ensure lock will be released
     {
@@ -815,7 +815,7 @@ int Motor::run( int delta_t )
                 + ", Actual_Vol: " + std::to_string(get_actual_voltage())
                 + ", Brake: " + std::to_string(get_brake_mode())
                 + ", Gear: " + std::to_string(get_gearset())
-                + ", I_max: " + std::to_string(internal_motor_pid.I_max)
+                + ", i_max: " + std::to_string(internal_motor_pid.i_max)
                 + ", I: " + std::to_string(integral)
                 + ", kD: " + std::to_string(internal_motor_pid.kD)
                 + ", kI: " + std::to_string(internal_motor_pid.kI)
@@ -834,7 +834,7 @@ int Motor::run( int delta_t )
                 + ", Brake: " + std::to_string(get_brake_mode())
                 // + ", Calc_Target_Vol: " + std::to_string(voltage)
                 + ", Gear: " + std::to_string(get_gearset())
-                + ", I_max: " + std::to_string(internal_motor_pid.I_max)
+                + ", i_max: " + std::to_string(internal_motor_pid.i_max)
                 + ", I: " + std::to_string(integral)
                 + ", kD: " + std::to_string(internal_motor_pid.kD)
                 + ", kI: " + std::to_string(internal_motor_pid.kI)
@@ -854,7 +854,7 @@ int Motor::run( int delta_t )
                 + ", Brake: " + std::to_string(get_brake_mode())
                 // + ", Calc_Target_Vol: " + std::to_string(voltage)
                 + ", Gear: " + std::to_string(get_gearset())
-                + ", I_max: " + std::to_string(internal_motor_pid.I_max)
+                + ", i_max: " + std::to_string(internal_motor_pid.i_max)
                 + ", I: " + std::to_string(integral)
                 + ", IME: " + std::to_string(get_encoder_position())
                 + ", kD: " + std::to_string(internal_motor_pid.kD)
@@ -876,7 +876,7 @@ int Motor::run( int delta_t )
                 // + ", Calc_Target_Vol: " + std::to_string(voltage)
                 + ", Dir: " + std::to_string(get_direction())
                 + ", Gear: " + std::to_string(get_gearset())
-                + ", I_max: " + std::to_string(internal_motor_pid.I_max)
+                + ", i_max: " + std::to_string(internal_motor_pid.i_max)
                 + ", I: " + std::to_string(integral)
                 + ", IME: " + std::to_string(get_encoder_position())
                 + ", kD: " + std::to_string(internal_motor_pid.kD)
@@ -900,7 +900,7 @@ int Motor::run( int delta_t )
                 + ", Current: " + std::to_string(get_current_draw())
                 + ", Dir: " + std::to_string(get_direction())
                 + ", Gear: " + std::to_string(get_gearset())
-                + ", I_max: " + std::to_string(internal_motor_pid.I_max)
+                + ", i_max: " + std::to_string(internal_motor_pid.i_max)
                 + ", I: " + std::to_string(integral)
                 + ", IME: " + std::to_string(get_encoder_position())
                 + ", kD: " + std::to_string(internal_motor_pid.kD)

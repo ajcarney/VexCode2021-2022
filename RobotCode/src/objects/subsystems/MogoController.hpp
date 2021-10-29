@@ -17,7 +17,7 @@
 
 #include "../motors/Motor.hpp"
 #include "../sensors/Sensors.hpp"
-
+#include "../../Configuration.hpp"
 
 
 typedef enum e_mogo_command {
@@ -28,7 +28,11 @@ typedef enum e_mogo_command {
 } mogo_command;
 
 typedef struct {
-    double end_state;
+    double setpoint=0;
+    int max_velocity=150;
+    int timeout=INT32_MAX;
+    bool log_data=false;
+    double motor_slew=INT32_MAX;
 }mogo_args;
 
 typedef struct {
@@ -57,6 +61,8 @@ class MogoController
         
         std::vector<int> setpoints;
 
+        static pid gains;
+
         int send_command(mogo_command command, mogo_args args={});
 
         static void mogo_motion_task(void*);
@@ -66,8 +72,10 @@ class MogoController
         ~MogoController();
 
         int cycle_setpoint(int direction, bool asynch);
-        int move_to(double sensor_value, bool asynch);
+        int move_to(double sensor_value, bool asynch, int timeout=INT32_MAX, int max_velocity=100, double motor_slew=INT32_MAX, bool log_data=false);
         
+        
+        void set_gains(pid new_gains);
         
         void move_down();
         void move_up();

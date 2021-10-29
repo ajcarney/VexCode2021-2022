@@ -6,6 +6,7 @@
  *
  * Contains implementation for the LiftController class
  */
+#include <cassert>
 
 #include "main.h"
 
@@ -20,6 +21,8 @@ std::atomic<bool> LiftController::command_start_lock = ATOMIC_VAR_INIT(false);
 std::atomic<bool> LiftController::command_finish_lock = ATOMIC_VAR_INIT(false);
 
 Motor* LiftController::lift_motor;
+
+pid LiftController::gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
 
 
 LiftController::LiftController(Motor &motor) {
@@ -78,6 +81,111 @@ void LiftController::lift_motion_task(void*) {
                 break;
             } case e_stop: {
                 lift_motor->set_voltage(0);
+                break;
+            } case e_move_to: {
+                double prev_velocity = 0;
+                double prev_error = 0;
+                double integral = 0;
+
+                std::vector<double> error_history;
+                int max_history_length = 15;
+                
+                int current_time = pros::millis();
+                int start_time = current_time;
+
+                do {
+                    int dt = pros::millis() - current_time;
+
+                    long double error = action.args.setpoint - Sensors::lift_potentiometer.get_value(false);
+
+                    integral = integral + (error * dt);
+                    if(integral > gains.i_max) {
+                        integral = gains.i_max;
+                    } else if (integral < -gains.i_max) {
+                        integral = -gains.i_max;
+                    }
+
+                    double derivative = error - prev_error;
+                    prev_error = error;
+
+                    current_time = pros::millis();
+
+                    double abs_velocity = (gains.kP * error) + (gains.kI * integral) + (gains.kD * derivative);
+
+                    // slew rate code
+                    double delta_velocity = abs_velocity - prev_velocity;
+                    double slew_rate = gains.motor_slew;
+                    int over_slew = 0;
+                    if(std::abs(delta_velocity) > (dt * slew_rate)) {
+                        assert(delta_velocity != 0);
+
+                        int sign = std::abs(delta_velocity) / delta_velocity;
+                        std::cout << "over slew: " << sign << " " << dt << " " << slew_rate << "\n";
+                        abs_velocity = prev_velocity + (sign * dt * slew_rate);
+                        over_slew = 1;
+                    }
+
+
+                    // cap velocity to max velocity with regard to velocity
+                    if ( std::abs(abs_velocity) > action.args.max_velocity ) {
+                        abs_velocity = abs_velocity > 0 ? action.args.max_velocity : -action.args.max_velocity;
+                    }
+                    prev_velocity = abs_velocity;
+                    
+                    error_history.push_back(prev_error);
+                    if(error_history.size() > max_history_length) {
+                         error_history.erase(error_history.begin());
+                    }
+
+                    double error_difference = *std::minmax_element(error_history.begin(), error_history.end()).second - *std::minmax_element(error_history.begin(), error_history.end()).first;
+
+                    if ( action.args.log_data ) {
+                        Logger logger;
+                        log_entry entry;
+                        entry.content = (
+                            "[INFO] " + std::string("CHASSIS_PID_TURN")
+                            + ", Time: " + std::to_string(pros::millis())
+                            + ", Actual_Vol: " + std::to_string(lift_motor->get_actual_voltage())
+                            + ", Brake: " + std::to_string(lift_motor->get_brake_mode())
+                            + ", Gear: " + std::to_string(lift_motor->get_gearset())
+                            + ", i_max: " + std::to_string(gains.i_max)
+                            + ", I: " + std::to_string(integral)
+                            + ", kD: " + std::to_string(gains.kD)
+                            + ", kI: " + std::to_string(gains.kI)
+                            + ", kP: " + std::to_string(gains.kP)
+                            + ", Sp: " + std::to_string(action.args.setpoint)
+                            + ", error history: " + std::to_string(error_history.size())
+                            + ", history size: " + std::to_string(max_history_length)
+                            + ", time out time: " + std::to_string(start_time + action.args.timeout)
+                            + ", error difference: " + std::to_string(error_difference)
+                            + ", over slew: " + std::to_string(over_slew)
+                            + ", Actual_Vel: " + std::to_string(lift_motor->get_actual_velocity())
+                        );
+                        entry.stream = "clog";
+                        logger.add(entry);
+                    }
+
+                    if (
+                        std::abs(error_difference) < .007
+                        && error_history.size() == max_history_length
+                        && pros::millis() > start_time + 500  // don't stop right away on accident
+                        // std::abs(l_difference) < 2
+                        // && previous_l_velocities.size() == velocity_history
+                        // && std::abs(r_difference) < 2
+                        // && previous_r_velocities.size() == velocity_history
+                        // && l_velocity < 2
+                        // && r_velocity < 2
+                    ) {  // velocity change has been minimal, so stop
+                        lift_motor->set_motor_mode(e_voltage);
+                        lift_motor->set_voltage(0);
+                        break; // end before timeout
+                    }
+
+                    lift_motor->move_velocity(abs_velocity);
+
+                    pros::delay(10);
+                } while ( pros::millis() < (start_time + action.args.timeout) );
+                
                 break;
             }
         }
@@ -138,15 +246,26 @@ int LiftController::cycle_setpoint(int direction, bool asynch) {
 }
 
 
-int LiftController::move_to(double sensor_value, bool asynch) {
-    lift_args args;
-    args.end_state = sensor_value;
-    int uid = send_command(e_move_to, args);
+int LiftController::move_to(double sensor_value, bool asynch, int timeout, int max_velocity, double motor_slew, bool log_data) {
+    lift_action action;
+    action.args.setpoint = sensor_value;
+    int uid = send_command(e_move_to, action.args);
     if(!asynch) {
         wait_until_finished(uid);
     }
     return uid;
 }
+
+
+
+void LiftController::set_gains(pid new_gains) {
+    gains.kP = new_gains.kP;
+    gains.kI = new_gains.kI;
+    gains.kD = new_gains.kD;
+    gains.i_max = new_gains.i_max;
+    gains.motor_slew = new_gains.motor_slew;
+}
+
 
 
 void LiftController::move_up() {

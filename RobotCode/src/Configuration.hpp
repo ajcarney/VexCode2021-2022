@@ -68,7 +68,8 @@
 #define STRAFE_ENC_TOP_PORT      'Z'
 #define STRAFE_ENC_BOTTOM_PORT   'Z'
 #define DETECTOR_MIDDLE_PORT     'Z'
-#define POTENTIOMETER_PORT       'Z'
+#define LIFT_POTENTIOMETER_PORT  'Z'
+#define MOGO_POTENTIOMETER_PORT  'Z'
 
 #define DETECTOR_BOTTOM_PORT     'Z'
 #define DETECTOR_TOP_PORT        'Z'
@@ -89,21 +90,23 @@ typedef struct
     double kP = 0;
     double kI = 0;
     double kD = 0;
-    double I_max = 0;
+    double i_max = 0;
+    double motor_slew=INT32_MAX; //max rate of voltage change
     void print() {
         std::cout << "kP: " << this->kP << "\n";
         std::cout << "kI: " << this->kI << "\n";
         std::cout << "kD: " << this->kD << "\n";
-        std::cout << "I_max: " << this->I_max << "\n";
+        std::cout << "I_max: " << this->i_max << "\n";
+        std::cout << "motor_slew: " << this->motor_slew << "\n";
     };
 } pid;
 
 
 class Configuration {
     public:
-        static constexpr pid internal_motor_pid {1, 0, 0, INT32_MAX};  // see above struct for parameter order
-        static constexpr pid lift_pid {1, 0, 0, INT32_MAX};
-        static constexpr pid chassis_pid {1, 0, 0, INT32_MAX};
+        static constexpr pid internal_motor_pid {1, 0, 0, 0, INT32_MAX};  // see above struct for parameter order
+        static constexpr pid lift_pid {1, 0, 0, 0, INT32_MAX};
+        static constexpr pid chassis_pid {1, 0, 0, 0, INT32_MAX};
 
         static constexpr int lift_setpoints[] = {};
         static constexpr int mogo_setpoints[] = {};

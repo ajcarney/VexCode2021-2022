@@ -228,7 +228,7 @@ int Server::handle_request(server_request request) {
                 pid_constants.kP = n1;
                 pid_constants.kI = n2;
                 pid_constants.kD = n3;
-                pid_constants.I_max = n4;
+                pid_constants.i_max = n4;
                 
                 status = Motors::motor_array.at(motor_number)->set_pid(pid_constants);
             }
@@ -335,7 +335,7 @@ int Server::handle_request(server_request request) {
                 return_msg_body += std::to_string(Motors::motor_array.at(motor_number)->get_pid().kP);
                 return_msg_body += " " + std::to_string(Motors::motor_array.at(motor_number)->get_pid().kI);
                 return_msg_body += " " + std::to_string(Motors::motor_array.at(motor_number)->get_pid().kD);
-                return_msg_body += " " + std::to_string(Motors::motor_array.at(motor_number)->get_pid().I_max);
+                return_msg_body += " " + std::to_string(Motors::motor_array.at(motor_number)->get_pid().i_max);
             }
             break;
             

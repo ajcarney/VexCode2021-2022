@@ -45,8 +45,8 @@ class InternalMotorDebug : private Styles
         lv_obj_t *kd_label;
         lv_obj_t *kd_text_area;
         
-        lv_obj_t *I_max_label;
-        lv_obj_t *I_max_text_area;
+        lv_obj_t *i_max_label;
+        lv_obj_t *i_max_text_area;
         
         lv_obj_t *slew_label;
         lv_obj_t *slew_text_area;

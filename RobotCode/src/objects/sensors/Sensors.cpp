@@ -27,6 +27,9 @@ namespace Sensors
 
     pros::Imu imu{IMU_PORT};
     bool imu_is_calibrated = false;
+    
+    AnalogInSensor lift_potentiometer(LIFT_POTENTIOMETER_PORT);
+    AnalogInSensor mogo_potentiometer(MOGO_POTENTIOMETER_PORT);
 
     RGBLedString rgb_leds{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'A'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'B'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'C')};
 

@@ -93,12 +93,13 @@ void Autons::skills() {
   tracker->set_position({0, 0, 0});
   chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
   chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
+  
 
 
 
 
-
-    //Skills Auton
+    //Skills Auton      
+        // bro ur at the wrong indentation level
         int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives fowards into middle mogo
   //      lift.move_to(50, false); //Move lift up
         Motors::piston1.set_value(false);   //ADD PISTON OPEN to drop rings into mogo
@@ -332,11 +333,14 @@ void Autons::MidMogoLeft() {
 }
 
 void Autons::MidMogoRight() {
-  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     LiftController lift(Motors::lift);
     MogoController mogo(Motors::mogo_lift);
     PositionTracker* tracker = PositionTracker::get_instance();
     tracker->start_thread();
+    
+    // R u using tabs instead of spaces!!!
+    
     tracker->enable_imu();
     tracker->set_log_level(0);
     tracker->set_position({0, 0, 0});

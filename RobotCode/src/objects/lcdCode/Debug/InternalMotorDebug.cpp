@@ -154,19 +154,19 @@ InternalMotorDebug::InternalMotorDebug() :
     lv_ta_set_one_line(kd_text_area, true);
     
 //I max    
-    I_max_label = lv_label_create(main_screen, NULL);
-    lv_label_set_style(I_max_label, &heading_text);
-    lv_obj_set_width(I_max_label, 100);
-    lv_obj_set_height(I_max_label, 20);
-    lv_label_set_align(I_max_label, LV_LABEL_ALIGN_LEFT);
-    lv_label_set_text(I_max_label, "kI Max");
+    i_max_label = lv_label_create(main_screen, NULL);
+    lv_label_set_style(i_max_label, &heading_text);
+    lv_obj_set_width(i_max_label, 100);
+    lv_obj_set_height(i_max_label, 20);
+    lv_label_set_align(i_max_label, LV_LABEL_ALIGN_LEFT);
+    lv_label_set_text(i_max_label, "kI Max");
     
-    I_max_text_area = lv_ta_create(main_screen, NULL);
-    lv_obj_set_style(I_max_text_area, &subheading_text);
-    lv_ta_set_accepted_chars(I_max_text_area, ".0123456789");
-    lv_obj_set_size(I_max_text_area, 80, 15);
-    lv_ta_set_text(I_max_text_area, std::to_string(motor.get_pid().I_max).c_str());
-    lv_ta_set_one_line(I_max_text_area, true);
+    i_max_text_area = lv_ta_create(main_screen, NULL);
+    lv_obj_set_style(i_max_text_area, &subheading_text);
+    lv_ta_set_accepted_chars(i_max_text_area, ".0123456789");
+    lv_obj_set_size(i_max_text_area, 80, 15);
+    lv_ta_set_text(i_max_text_area, std::to_string(motor.get_pid().i_max).c_str());
+    lv_ta_set_one_line(i_max_text_area, true);
     
 //slew rate    
     slew_label = lv_label_create(main_screen, NULL);
@@ -256,7 +256,7 @@ InternalMotorDebug::InternalMotorDebug() :
     // lv_kb_set_ta(keyboard, kp_text_area);
     // lv_kb_set_ta(keyboard, ki_text_area);
     // lv_kb_set_ta(keyboard, kd_text_area);
-    // lv_kb_set_ta(keyboard, I_max_text_area);
+    // lv_kb_set_ta(keyboard, i_max_text_area);
     // lv_kb_set_ta(keyboard, slew_text_area);
     
     //lv_ta_set_action(port_text_area, LV_EVENT_PRESSED);
@@ -273,7 +273,7 @@ InternalMotorDebug::InternalMotorDebug() :
     lv_obj_set_pos(kp_label, 20, 30);
     lv_obj_set_pos(ki_label, 20, 55);
     lv_obj_set_pos(kd_label, 20, 80);
-    lv_obj_set_pos(I_max_label, 20, 105);
+    lv_obj_set_pos(i_max_label, 20, 105);
     lv_obj_set_pos(slew_label, 20, 130);
     lv_obj_set_pos(setpoint_label, 20, 155);
     lv_obj_set_pos(duration_label, 20, 180);
@@ -281,7 +281,7 @@ InternalMotorDebug::InternalMotorDebug() :
     lv_obj_set_pos(kp_text_area, 130, 23);
     lv_obj_set_pos(ki_text_area, 130, 48);
     lv_obj_set_pos(kd_text_area, 130, 73);
-    lv_obj_set_pos(I_max_text_area, 130, 98);
+    lv_obj_set_pos(i_max_text_area, 130, 98);
     lv_obj_set_pos(slew_text_area, 130, 123);
     lv_obj_set_pos(setpoint_text_area, 130, 148);
     lv_obj_set_pos(duration_text_area, 130, 173);
@@ -426,12 +426,12 @@ int InternalMotorDebug::run_unit_test()
         double kP = std::stod(lv_ta_get_text(kp_text_area)); 
         double kI = std::stod(lv_ta_get_text(ki_text_area));
         double kD = std::stod(lv_ta_get_text(kd_text_area));
-        double I_max = std::stod(lv_ta_get_text(I_max_text_area));
+        double i_max = std::stod(lv_ta_get_text(i_max_text_area));
 
         pid_constants.kP = kP;
         pid_constants.kI = kI;
         pid_constants.kD = kD;
-        pid_constants.I_max = I_max;
+        pid_constants.i_max = i_max;
     }
     catch ( const std::invalid_argument& )
     {

@@ -20,6 +20,7 @@
 #include "../serial/Logger.hpp"
 #include "../position_tracking/PositionTracker.hpp"
 #include "chassis.hpp"
+#include "../../Configuration.hpp"
 
 
 
@@ -100,11 +101,11 @@ double Chassis::gear_ratio;
 double Chassis::wheel_diameter;
 
 
-pid_gains Chassis::pid_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid_gains Chassis::profiled_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid_gains Chassis::okapi_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid_gains Chassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
-pid_gains Chassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
+pid Chassis::pid_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid Chassis::profiled_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid Chassis::okapi_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid Chassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
+pid Chassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
 
 
 Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &mid_left, Motor &mid_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing /*1*/, double wheel_size /*4.05*/)
@@ -1529,7 +1530,7 @@ int Chassis::turn_to_angle(double theta, int max_velocity /*450*/, int timeout /
 
 
 
-void Chassis::set_pid_sdrive_gains(pid_gains new_gains) {
+void Chassis::set_pid_sdrive_gains(pid new_gains) {
     pid_sdrive_gains.kP = new_gains.kP;
     pid_sdrive_gains.kI = new_gains.kI;
     pid_sdrive_gains.kD = new_gains.kD;
@@ -1537,7 +1538,7 @@ void Chassis::set_pid_sdrive_gains(pid_gains new_gains) {
     pid_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_profiled_sdrive_gains(pid_gains new_gains) {
+void Chassis::set_profiled_sdrive_gains(pid new_gains) {
     profiled_sdrive_gains.kP = new_gains.kP;
     profiled_sdrive_gains.kI = new_gains.kI;
     profiled_sdrive_gains.kD = new_gains.kD;
@@ -1545,7 +1546,7 @@ void Chassis::set_profiled_sdrive_gains(pid_gains new_gains) {
     profiled_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_okapi_sdrive_gains(pid_gains new_gains) {
+void Chassis::set_okapi_sdrive_gains(pid new_gains) {
     okapi_sdrive_gains.kP = new_gains.kP;
     okapi_sdrive_gains.kI = new_gains.kI;
     okapi_sdrive_gains.kD = new_gains.kD;
@@ -1553,7 +1554,7 @@ void Chassis::set_okapi_sdrive_gains(pid_gains new_gains) {
     okapi_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_heading_gains(pid_gains new_gains) {
+void Chassis::set_heading_gains(pid new_gains) {
     heading_gains.kP = new_gains.kP;
     heading_gains.kI = new_gains.kI;
     heading_gains.kD = new_gains.kD;
@@ -1561,7 +1562,7 @@ void Chassis::set_heading_gains(pid_gains new_gains) {
     heading_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_turn_gains(pid_gains new_gains) {
+void Chassis::set_turn_gains(pid new_gains) {
     turn_gains.kP = new_gains.kP;
     turn_gains.kI = new_gains.kI;
     turn_gains.kD = new_gains.kD;

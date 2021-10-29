@@ -83,8 +83,8 @@ Wiring::Wiring()
         "right enc bottom  - " + RIGHT_ENC_BOTTOM_PORT + "\n" +
         "left enc top      - " + LEFT_ENC_TOP_PORT + "\n" +
         "left enc bottom   - " + LEFT_ENC_BOTTOM_PORT + "\n" +
-        "potentiometer     - " + POTENTIOMETER_PORT + "\n" +
-        "top detector      - " + DETECTOR_TOP_PORT + "\n" +
+        "lift potentiometer- " + LIFT_POTENTIOMETER_PORT + "\n" +
+        "mogo potentiometer- " + MOGO_POTENTIOMETER_PORT + "\n" +
         "middle detector   - " + DETECTOR_MIDDLE_PORT + "\n" +
         "bottom detector   - " + DETECTOR_BOTTOM_PORT + "\n" +
         "optical sensor    - " + std::to_string(OPTICAL_PORT) + "\n"
