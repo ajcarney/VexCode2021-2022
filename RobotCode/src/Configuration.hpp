@@ -75,7 +75,7 @@
 
 #define OPTICAL_PORT              12
 #define DISTANCE_PORT            13
-#define IMU_PORT                 15
+#define IMU_PORT                 9
 #define EXPANDER_PORT             17
 
 #define CHASSIS_WIDTH            16

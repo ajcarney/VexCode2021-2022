@@ -70,9 +70,9 @@ typedef struct {
 } chassis_params;
 
 typedef struct {
-    double kP=20; //error = sensor reading-target reading           kP x error + ki x intergal + kD x derivative
-    double kI= 5; //How fast it settles
-    double kD= 0.00000001; //Rate of change settle the program
+    double kP=0.001; //error = sensor reading-target reading           kP x error + ki x intergal + kD x derivative
+    double kI= 0.0001; //How fast it settles
+    double kD= 0; //Rate of change settle the program
     double i_max=INT32_MAX; //limits the max intergal
     double motor_slew=INT32_MAX; //max rate of voltage change
 } pid_gains;

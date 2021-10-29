@@ -19,6 +19,7 @@
 #include "objects/sensors/RGBLed.hpp"
 
 
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -38,7 +39,7 @@
     Autons auton;
     auton.set_autonomous_number(final_auton_choice);
 
-    // Sensors::calibrate_imu();  // TODO: uncomment when you have an imu plugged in
+     Sensors::calibrate_imu();  // TODO: uncomment when you have an imu plugged in
 
 
     // std::cout << OptionsScreen::cnfg.use_hardcoded << '\n';

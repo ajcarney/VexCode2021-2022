@@ -27,7 +27,7 @@ int Autons::selected_number = 1;
 
 Autons::Autons( )
 {
-    debug_auton_num = 6;  // TODO: this should be dynamically set because it causes a lot of errors otherwise  //ADDED BY NOLAN PENDING REVIEW
+    debug_auton_num = 7;  // TODO: this should be dynamically set because it causes a lot of errors otherwise  //ADDED BY NOLAN PENDING REVIEW
     driver_control_num = 1;
 }
 
@@ -69,11 +69,11 @@ void Autons::pid_straight_drive() {
   tracker->set_log_level(0);
   tracker->set_position({0, 0, 0});
   chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
-  chassis.set_okapi_sdrive_gains({20, 5, 0.00000001, INT32_MAX, INT32_MAX});
+  chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
 
 
 //  chassis.turn_left(51.5, 300, 1000, false); //Turn PID test
-  int uid = chassis.okapi_pid_straight_drive(1000, 6000, 1000, false, 0); //Drives foward to test pid_straight_drive
+  int uid = chassis.okapi_pid_straight_drive(1500, 10000, 6000, false, 0); //Drives foward to test pid_straight_drive
 }
 
 
@@ -92,7 +92,7 @@ void Autons::skills() {
   tracker->set_log_level(0);
   tracker->set_position({0, 0, 0});
   chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
-  chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+  chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
 
 
 
@@ -100,7 +100,7 @@ void Autons::skills() {
 
     //Skills Auton
         int uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives fowards into middle mogo
-    //    lift.move_to(50, false); //Move lift up
+  //      lift.move_to(50, false); //Move lift up
         Motors::piston1.set_value(false);   //ADD PISTON OPEN to drop rings into mogo
         uid = chassis.okapi_pid_straight_drive(-770, 6000, 2500, false, 0); //Drives back
     //    lift.move_to(-50, false); //ADD SIX BAR LIFT Down
@@ -265,7 +265,7 @@ void Autons::skills() {
       tracker->set_log_level(0);
       tracker->set_position({0, 0, 0});
       chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
-      chassis.set_okapi_sdrive_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+      chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
 
   // Win Point
       lift.move_to(50, false); //Moves lift up
@@ -299,12 +299,12 @@ void Autons::MidMogoLeft() {
     tracker->set_log_level(0);
     tracker->set_position({0, 0, 0});
     chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
-    chassis.set_okapi_sdrive_gains({10, 0.00001, 1, INT32_MAX, INT32_MAX});
+    chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
 
 
 // Middle Mogo LEFT
   //  Motors::piston2.set_value(false);    //ADD PISTON OPEN asynchronous WITH DRIVE
-  Motors::piston1.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    Motors::piston1.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
     int uid = chassis.okapi_pid_straight_drive(-2200, 6000, 2000, true, 0); //Drives backwards into middle mogo
     Motors::piston2.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
     chassis.wait_until_finished(uid);
@@ -331,6 +331,35 @@ void Autons::MidMogoLeft() {
 
 }
 
+void Autons::MidMogoRight() {
+  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    LiftController lift(Motors::lift);
+    MogoController mogo(Motors::mogo_lift);
+    PositionTracker* tracker = PositionTracker::get_instance();
+    tracker->start_thread();
+    tracker->enable_imu();
+    tracker->set_log_level(0);
+    tracker->set_position({0, 0, 0});
+    chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+    chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
+
+
+    Motors::piston2.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    int uid = chassis.okapi_pid_straight_drive(-1850, 7000, 1500, false, 0); //Drives backwards into middle mogo
+//    pros::delay(500);
+    Motors::piston2.set_value(false);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    uid = chassis.okapi_pid_straight_drive(1600, 7000, 800, false, 0); //Drives back into home zone
+    Motors::piston2.set_value(true);  //ADD PISTON OPEN
+    uid = chassis.okapi_pid_straight_drive(1000, 6000, 300, false, 0); //Drives back into home zone
+    Motors::piston2.set_value(false);
+    chassis.turn_right(72, 300, 1000, false); //Turns towards alliance mogo
+    mogo.move_to(-2000, false);
+    uid = chassis.okapi_pid_straight_drive(-800, 4000, 1000, false, 0); //Drives back into home zone
+  //  mogo.move_to(50, false);
+    pros::delay(500);
+//    lift.move_to(50, false);
+    pros::delay(500);
+}
 
 void Autons::run_autonomous() {
     switch(selected_number) {
@@ -351,6 +380,10 @@ void Autons::run_autonomous() {
 
         case 5:
             MidMogoLeft();
+            break;
+
+        case 6:
+            MidMogoRight();
             break;
     }
 }
