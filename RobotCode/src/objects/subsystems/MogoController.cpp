@@ -33,7 +33,7 @@ MogoController::MogoController(Motor &motor) {
     mogo_motor->set_motor_mode(e_voltage);
 
     mogo_motor->disable_slew();
-    
+
     for(int i = 0; i<(sizeof(Configuration::mogo_setpoints) / sizeof(Configuration::mogo_setpoints[0])); i++) {
         setpoints.push_back(Configuration::mogo_setpoints[i]);
     }
@@ -63,7 +63,7 @@ void MogoController::mogo_motion_task(void*) {
                 break;
             }
             command_start_lock.exchange( false ); //release lock
-            
+
             pros::delay(5);
         }
 
@@ -89,7 +89,7 @@ void MogoController::mogo_motion_task(void*) {
 
                 std::vector<double> error_history;
                 int max_history_length = 15;
-                
+
                 int current_time = pros::millis();
                 int start_time = current_time;
 
@@ -97,6 +97,8 @@ void MogoController::mogo_motion_task(void*) {
                     int dt = pros::millis() - current_time;
 
                     long double error = action.args.setpoint - Sensors::mogo_potentiometer.get_value(false);
+
+                    std::cout << error << "\n";
 
                     integral = integral + (error * dt);
                     if(integral > gains.i_max) {
@@ -131,7 +133,7 @@ void MogoController::mogo_motion_task(void*) {
                         abs_velocity = abs_velocity > 0 ? action.args.max_velocity : -action.args.max_velocity;
                     }
                     prev_velocity = abs_velocity;
-                    
+
                     error_history.push_back(prev_error);
                     if(error_history.size() > max_history_length) {
                          error_history.erase(error_history.begin());
@@ -185,7 +187,7 @@ void MogoController::mogo_motion_task(void*) {
 
                     pros::delay(10);
                 } while ( pros::millis() < (start_time + action.args.timeout) );
-                
+
                 break;
             }
         }
@@ -238,10 +240,10 @@ int MogoController::cycle_setpoint(int direction, bool asynch) {
     {
         target_set_point = setpoints[loc];
         int uid = move_to(target_set_point, asynch);
-        
+
         return uid;
     }
-    
+
     return -INT32_MAX;
 }
 

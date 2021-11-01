@@ -68,16 +68,16 @@
 #define STRAFE_ENC_TOP_PORT      'Z'
 #define STRAFE_ENC_BOTTOM_PORT   'Z'
 #define DETECTOR_MIDDLE_PORT     'Z'
-#define LIFT_POTENTIOMETER_PORT  'Z'
-#define MOGO_POTENTIOMETER_PORT  'Z'
+#define LIFT_POTENTIOMETER_PORT  'A'
+#define MOGO_POTENTIOMETER_PORT  'B'
 
 #define DETECTOR_BOTTOM_PORT     'Z'
 #define DETECTOR_TOP_PORT        'Z'
 
 #define OPTICAL_PORT              12
-#define DISTANCE_PORT            13
-#define IMU_PORT                 9
-#define EXPANDER_PORT             17
+#define DISTANCE_PORT             13
+#define IMU_PORT                  9
+#define EXPANDER_PORT             12
 
 #define CHASSIS_WIDTH            16
 #define CHASSIS_GEAR_RATIO      5/3

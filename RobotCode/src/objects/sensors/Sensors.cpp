@@ -21,15 +21,15 @@ namespace Sensors
     Encoder left_encoder{LEFT_ENC_TOP_PORT, LEFT_ENC_BOTTOM_PORT, false};
     Encoder strafe_encoder{STRAFE_ENC_TOP_PORT, STRAFE_ENC_BOTTOM_PORT, true};
 
-    pros::ADIDigitalIn r_limit_switch{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'E')};
-    pros::ADIDigitalIn l_limit_switch{'D'};
+//    pros::ADIDigitalIn lift_potentiometer{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'A')};
+//    pros::ADIDigitalIn mogo_potentiometer{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'B')};
 
 
     pros::Imu imu{IMU_PORT};
     bool imu_is_calibrated = false;
-    
-    AnalogInSensor lift_potentiometer(LIFT_POTENTIOMETER_PORT);
-    AnalogInSensor mogo_potentiometer(MOGO_POTENTIOMETER_PORT);
+
+    AnalogInSensor lift_potentiometer(pros::ext_adi_port_pair_t(EXPANDER_PORT, LIFT_POTENTIOMETER_PORT));
+    AnalogInSensor mogo_potentiometer(pros::ext_adi_port_pair_t(EXPANDER_PORT, MOGO_POTENTIOMETER_PORT));
 
     RGBLedString rgb_leds{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'A'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'B'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'C')};
 

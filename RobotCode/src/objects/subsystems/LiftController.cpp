@@ -33,7 +33,7 @@ LiftController::LiftController(Motor &motor) {
     lift_motor->set_motor_mode(e_voltage);
 
     lift_motor->disable_slew();
-    
+
     for(int i = 0; i<(sizeof(Configuration::lift_setpoints) / sizeof(Configuration::lift_setpoints[0])); i++) {
         setpoints.push_back(Configuration::lift_setpoints[i]);
     }
@@ -89,14 +89,16 @@ void LiftController::lift_motion_task(void*) {
 
                 std::vector<double> error_history;
                 int max_history_length = 15;
-                
+
                 int current_time = pros::millis();
                 int start_time = current_time;
 
                 do {
                     int dt = pros::millis() - current_time;
 
-                    long double error = action.args.setpoint - Sensors::lift_potentiometer.get_value(false);
+                    long double error = action.args.setpoint - Sensors::lift_potentiometer.get_raw_value();
+
+                    std::cout << error << "\n";
 
                     integral = integral + (error * dt);
                     if(integral > gains.i_max) {
@@ -111,6 +113,8 @@ void LiftController::lift_motion_task(void*) {
                     current_time = pros::millis();
 
                     double abs_velocity = (gains.kP * error) + (gains.kI * integral) + (gains.kD * derivative);
+
+                    std::cout << abs_velocity << "\n";
 
                     // slew rate code
                     double delta_velocity = abs_velocity - prev_velocity;
@@ -131,7 +135,7 @@ void LiftController::lift_motion_task(void*) {
                         abs_velocity = abs_velocity > 0 ? action.args.max_velocity : -action.args.max_velocity;
                     }
                     prev_velocity = abs_velocity;
-                    
+
                     error_history.push_back(prev_error);
                     if(error_history.size() > max_history_length) {
                          error_history.erase(error_history.begin());
@@ -185,7 +189,7 @@ void LiftController::lift_motion_task(void*) {
 
                     pros::delay(10);
                 } while ( pros::millis() < (start_time + action.args.timeout) );
-                
+
                 break;
             }
         }
@@ -238,10 +242,10 @@ int LiftController::cycle_setpoint(int direction, bool asynch) {
     {
         target_set_point = setpoints[loc];
         int uid = move_to(target_set_point, asynch);
-        
+
         return uid;
     }
-    
+
     return -INT32_MAX;
 }
 
