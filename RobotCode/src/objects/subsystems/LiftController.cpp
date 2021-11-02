@@ -92,6 +92,9 @@ void LiftController::lift_motion_task(void*) {
 
                 int current_time = pros::millis();
                 int start_time = current_time;
+                
+                lift_motor->set_motor_mode(e_builtin_velocity_pid);
+                lift_motor->disable_driver_control();
 
                 do {
                     int dt = pros::millis() - current_time;
@@ -118,7 +121,7 @@ void LiftController::lift_motion_task(void*) {
 
                     // slew rate code
                     double delta_velocity = abs_velocity - prev_velocity;
-                    double slew_rate = gains.motor_slew;
+                    double slew_rate = action.args.motor_slew;
                     int over_slew = 0;
                     if(std::abs(delta_velocity) > (dt * slew_rate)) {
                         assert(delta_velocity != 0);
@@ -189,7 +192,9 @@ void LiftController::lift_motion_task(void*) {
 
                     pros::delay(10);
                 } while ( pros::millis() < (start_time + action.args.timeout) );
-
+                lift_motor->set_motor_mode(e_voltage);
+                lift_motor->enable_driver_control();
+                
                 break;
             }
         }
@@ -253,6 +258,10 @@ int LiftController::cycle_setpoint(int direction, bool asynch) {
 int LiftController::move_to(double sensor_value, bool asynch, int timeout, int max_velocity, double motor_slew, bool log_data) {
     lift_action action;
     action.args.setpoint = sensor_value;
+    action.args.max_velocity = max_velocity;
+    action.args.timeout = timeout;
+    action.args.log_data = log_data;
+    action.args.motor_slew = motor_slew;
     int uid = send_command(e_move_to, action.args);
     if(!asynch) {
         wait_until_finished(uid);
