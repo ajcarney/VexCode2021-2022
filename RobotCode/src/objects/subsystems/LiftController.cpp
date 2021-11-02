@@ -22,7 +22,7 @@ std::atomic<bool> LiftController::command_finish_lock = ATOMIC_VAR_INIT(false);
 
 Motor* LiftController::lift_motor;
 
-pid LiftController::gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid LiftController::gains = {0.77, 0.000002, 7, INT32_MAX, INT32_MAX};
 
 
 LiftController::LiftController(Motor &motor) {
@@ -103,6 +103,8 @@ void LiftController::lift_motion_task(void*) {
 
                     std::cout << error << "\n";
 
+                  //  std::cout << prev_velocity << "\n";
+
                     integral = integral + (error * dt);
                     if(integral > gains.i_max) {
                         integral = gains.i_max;
@@ -117,7 +119,7 @@ void LiftController::lift_motion_task(void*) {
 
                     double abs_velocity = (gains.kP * error) + (gains.kI * integral) + (gains.kD * derivative);
 
-                    std::cout << abs_velocity << "\n";
+                  //  std::cout << abs_velocity << "\n";
 
                     // slew rate code
                     double delta_velocity = abs_velocity - prev_velocity;
@@ -189,6 +191,8 @@ void LiftController::lift_motion_task(void*) {
                     }
 
                     lift_motor->move_velocity(abs_velocity);
+
+                    std::cout << abs_velocity << "\n";
 
                     pros::delay(10);
                 } while ( pros::millis() < (start_time + action.args.timeout) );
