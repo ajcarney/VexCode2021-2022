@@ -28,13 +28,10 @@ namespace Sensors
     pros::Imu imu{IMU_PORT};
     bool imu_is_calibrated = false;
     
-    AnalogInSensor lift_potentiometer(LIFT_POTENTIOMETER_PORT);
-    AnalogInSensor mogo_potentiometer(MOGO_POTENTIOMETER_PORT);
-
     AnalogInSensor lift_potentiometer(pros::ext_adi_port_pair_t(EXPANDER_PORT, LIFT_POTENTIOMETER_PORT));
     AnalogInSensor mogo_potentiometer(pros::ext_adi_port_pair_t(EXPANDER_PORT, MOGO_POTENTIOMETER_PORT));
 
-    RGBLedString rgb_leds{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'A'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'B'), pros::ext_adi_port_pair_t(EXPANDER_PORT, 'C')};
+    RGBLedString rgb_leds{pros::ext_adi_port_pair_t(EXPANDER_PORT, LED_R), pros::ext_adi_port_pair_t(EXPANDER_PORT, LED_G), pros::ext_adi_port_pair_t(EXPANDER_PORT, LED_B)};
 
 
     void calibrate_imu() {

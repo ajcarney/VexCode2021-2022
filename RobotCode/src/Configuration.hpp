@@ -79,6 +79,10 @@
 #define IMU_PORT                  9
 #define EXPANDER_PORT             12
 
+#define LED_R                     'Z'
+#define LED_G                     'Z'
+#define LED_B                     'Z'
+
 #define CHASSIS_WIDTH            16
 #define CHASSIS_GEAR_RATIO      5/3
 
