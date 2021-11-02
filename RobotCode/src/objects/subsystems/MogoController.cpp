@@ -92,11 +92,14 @@ void MogoController::mogo_motion_task(void*) {
 
                 int current_time = pros::millis();
                 int start_time = current_time;
+                
+                mogo_motor->set_motor_mode(e_builtin_velocity_pid);
+                mogo_motor->disable_driver_control();
 
                 do {
                     int dt = pros::millis() - current_time;
 
-                    long double error = action.args.setpoint - Sensors::mogo_potentiometer.get_value(false);
+                    long double error = action.args.setpoint - Sensors::lift_potentiometer.get_raw_value();
 
                     std::cout << error << "\n";
 
@@ -114,9 +117,11 @@ void MogoController::mogo_motion_task(void*) {
 
                     double abs_velocity = (gains.kP * error) + (gains.kI * integral) + (gains.kD * derivative);
 
+                    std::cout << abs_velocity << "\n";
+
                     // slew rate code
                     double delta_velocity = abs_velocity - prev_velocity;
-                    double slew_rate = gains.motor_slew;
+                    double slew_rate = action.args.motor_slew;
                     int over_slew = 0;
                     if(std::abs(delta_velocity) > (dt * slew_rate)) {
                         assert(delta_velocity != 0);
@@ -187,7 +192,9 @@ void MogoController::mogo_motion_task(void*) {
 
                     pros::delay(10);
                 } while ( pros::millis() < (start_time + action.args.timeout) );
-
+                mogo_motor->set_motor_mode(e_voltage);
+                mogo_motor->enable_driver_control();
+                
                 break;
             }
         }
