@@ -92,14 +92,14 @@ void MogoController::mogo_motion_task(void*) {
 
                 int current_time = pros::millis();
                 int start_time = current_time;
-                
+
                 mogo_motor->set_motor_mode(e_builtin_velocity_pid);
                 mogo_motor->disable_driver_control();
 
                 do {
                     int dt = pros::millis() - current_time;
 
-                    long double error = action.args.setpoint - Sensors::lift_potentiometer.get_raw_value();
+                    long double error = action.args.setpoint - Sensors::mogo_potentiometer.get_raw_value();
 
                     std::cout << error << "\n";
 
@@ -194,7 +194,7 @@ void MogoController::mogo_motion_task(void*) {
                 } while ( pros::millis() < (start_time + action.args.timeout) );
                 mogo_motor->set_motor_mode(e_voltage);
                 mogo_motor->enable_driver_control();
-                
+
                 break;
             }
         }

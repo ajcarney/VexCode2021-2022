@@ -71,7 +71,7 @@ void Autons::pid_straight_drive() {
   chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
   chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
 
-  mogo.move_to(1300, false);
+  mogo.move_to(3400, false);
 //  chassis.turn_left(51.5, 300, 1000, false); //Turn PID test
 //  int uid = chassis.okapi_pid_straight_drive(1500, 10000, 6000, false, 0); //Drives foward to test pid_straight_drive
 }
