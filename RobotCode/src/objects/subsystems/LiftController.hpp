@@ -30,7 +30,7 @@ typedef enum e_lift_command {
 
 typedef struct {
     double setpoint=0;
-    int max_velocity=150;
+    int max_velocity=100;
     int timeout=INT32_MAX;
     bool log_data=false;
     double motor_slew=INT32_MAX;
@@ -59,9 +59,9 @@ class LiftController
         static std::vector<int> commands_finished;
         static std::atomic<bool> command_start_lock;
         static std::atomic<bool> command_finish_lock;
-        
+
         std::vector<int> setpoints;
-        
+
         static pid gains;
 
         int send_command(lift_command command, lift_args args={});
@@ -74,10 +74,10 @@ class LiftController
 
         int cycle_setpoint(int direction, bool asynch);
         int move_to(double sensor_value, bool asynch, int timeout=INT32_MAX, int max_velocity=100, double motor_slew=INT32_MAX, bool log_data=false);
-        
+
         void set_gains(pid new_gains);
-        
-        
+
+
         void move_down();
         void move_up();
 

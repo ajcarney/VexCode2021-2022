@@ -77,7 +77,7 @@
 #define OPTICAL_PORT              12
 #define DISTANCE_PORT             13
 #define IMU_PORT                  9
-#define EXPANDER_PORT             12
+#define EXPANDER_PORT             16
 
 #define LED_R                     'Z'
 #define LED_G                     'Z'
