@@ -324,7 +324,8 @@ void Autons::MidMogoLeft() {
     mogo.move_to(3500, false, 1000);
     Motors::piston2.set_value(false);  //ADD PISTON OPEN
     uid = chassis.okapi_pid_straight_drive(-1200, 4000, 1500, false, 0); //Reverses away from alliance mogo
-    mogo.move_to(1800, false);
+    mogo.move_to(1700, false);
+    Motors::piston3.set_value(false);  //ADD PISTON OPEN
 }
 
 void Autons::MidMogoRight() {
