@@ -23,7 +23,7 @@ std::atomic<bool> MogoController::command_finish_lock = ATOMIC_VAR_INIT(false);
 
 Motor* MogoController::mogo_motor;
 
-pid MogoController::gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid MogoController::gains = {.1, 0, 0, INT32_MAX, INT32_MAX};
 
 MogoController::MogoController(Motor &motor) {
     mogo_motor = &motor;
@@ -101,7 +101,7 @@ void MogoController::mogo_motion_task(void*) {
 
                     long double error = action.args.setpoint - Sensors::mogo_potentiometer.get_raw_value();
 
-                    std::cout << error << "\n";
+                    std::cout << Sensors::mogo_potentiometer.get_raw_value() << "\n";
 
                     integral = integral + (error * dt);
                     if(integral > gains.i_max) {
@@ -117,7 +117,7 @@ void MogoController::mogo_motion_task(void*) {
 
                     double abs_velocity = (gains.kP * error) + (gains.kI * integral) + (gains.kD * derivative);
 
-                    std::cout << abs_velocity << "\n";
+                    // std::cout << abs_velocity << "\n";
 
                     // slew rate code
                     double delta_velocity = abs_velocity - prev_velocity;
