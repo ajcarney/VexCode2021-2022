@@ -31,6 +31,7 @@ namespace Motors
 
     extern pros::ADIDigitalOut piston1;
     extern pros::ADIDigitalOut piston2;
+    extern pros::ADIDigitalOut piston3;
 
     extern double chassis_gear_ratio;
 
