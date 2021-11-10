@@ -46,9 +46,10 @@ void driver_control(void*)
 
     bool p1_state = false;
     bool p2_state = false;
+    bool p3_state = false;
     Motors::piston1.set_value(false);
     Motors::piston2.set_value(false);
-
+    Motors::piston3.set_value(false);
 
 
     const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
@@ -90,13 +91,14 @@ void driver_control(void*)
             p2_state = !p2_state;
             Motors::piston2.set_value(p2_state);
         }
+        
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {    // toggle piston 3
+            p3_state = !p3_state;
+            Motors::piston3.set_value(p3_state);
+        }
 
     // lift movement
-        if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) {
-            lift.cycle_setpoint(1, true);
-        } else if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
-            lift.cycle_setpoint(-1, true);
-        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_R1)) {
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_R1)) {
             lift.move_up();
         } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_R2)) {
             lift.move_down();
@@ -105,11 +107,7 @@ void driver_control(void*)
         }
 
     // mogo movement
-        if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1)) {
-            mogo.cycle_setpoint(1, true);
-        } else if(controllers.btn_is_pressing(SHIFT_KEY) && controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2)) {
-            mogo.cycle_setpoint(-1, true);
-        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1)) {
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1)) {
             mogo.move_up();
         } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L2)) {
             mogo.move_down();
@@ -122,7 +120,7 @@ void driver_control(void*)
             autons.deploy();
         }
 
-        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_UP) && controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_Y)) {
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_UP) && controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_Y) && controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_DOWN)) {
             autons.run_autonomous();
         }
 

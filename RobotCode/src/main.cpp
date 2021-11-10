@@ -221,7 +221,7 @@ void opcontrol() {
     Autons autons;
     // autons.run_autonomous();
     // autons.skills2();
-
+    Motors::enable_driver_control();
     pros::Task driver_control_task (driver_control,
                                     (void*)NULL,
                                     TASK_PRIORITY_DEFAULT,
@@ -242,7 +242,7 @@ void opcontrol() {
       52,54,56,58,59,61,63,65,67,69,71,73,75,77,79,81,83,85,88,90,92,94,96,98,100,103,105,107,109,111,114,116,118,120,123,125
     };
 
-    pros::ADIDigitalIn limit_switch(pros::ext_adi_port_pair_t(EXPANDER_PORT, 'D'));
+    pros::ADIDigitalIn limit_switch(pros::ext_adi_port_pair_t(EXPANDER_PORT, 'Z'));
     int mode = 1;
 
     int r = 0;
