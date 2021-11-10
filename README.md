@@ -118,6 +118,44 @@ Part 2
 4. Call it good enough at some point and be sure to add timeouts in the code
 
 
+# Debugging 
+printing out values is the most important thing you can do. To print stuff out use the command 
+
+```
+std::cout << "test_string" << " " << variable1 << " " << variable2 << " " << variable3 << '\n';
+```
+
+in this setup the code will print 4 things. It will print the string given by the quotes and the values of each of the four variables. You can have any number of items separated by "<<". Replace the relevant sections with the variable you want printed and maybe a string in front of it to help you recognize what it is. In this case the '\n' being printed out will ensure that the next print statement will be on a newline in the terminal. An example of a useful statement would be 
+```
+std::cout << "velocity " << abs_velocity << "\n";
+```
+
+### Tricks
+1. Look for the important values and print them out. Make sure they make sense
+2. Only run one subsystem at a time
+3. Print out each variable with a label so you don't get confused at what values you are looking at
+4. Have someone else look for issues
+5. Determine which test cases cause the bug/issue and write them down 
+6. Set break points in the code with print statements (places where you know it is running currently or what a value is at a specific line in the code). Useful for when functions/parts of the code seemingly do not run 
+7. Do a make all and power cycle the brain. Usually helps fix wiring/motor reversing issues
+
+
+
+### Possible things that could be wrong with pid
+##### Sensor is not right
+1. print out the value given from the sensor. Make sure this value corresponds to the physical movement of the sensor and makes sense.
+2. print out the value of the calculated error (setpoint - sensor reading). Make sure this value makes sense and changes according to physical movement. To debug this comment out the line where the motor's velocity is set and move the subsystem manually to check if the error changes.
+3. If both of these values make sense then it is likely not a sensor issue
+
+##### Velocity is not right or does not seemingly stop at the right place
+1. Check that the max velocity corresponds to the max velocity the motor can handle (given in rpm)
+2. Check that the gearset defined in the configuration file for the motors in correct 
+3. Make sure the pid is tuned properly (Ki should start at 0)
+4. A useful value to print out to help debug would be the velocity the motor will be set to. Note that this value will change during the pid loop so print it out at multiple places to check the value after each calculation. There is a pid calculation, a slew rate calculation, and a max velocity calculation. The velocity might change after each of these calculations. If you print out the value right before the motor is set to it, it will be accurate.
+
+
+
+
 # Adding more auton functions
 1. go to ```RobotCode/src/Autons.hpp```
 2. under each of the maps AUTONOMOUS_NAMES, AUTONOMOUS_DESCRIPTIONS, AUTONOMOUS_COLORS add an entry with an in order number and the data necessary (follow the syntax of the others ones)
