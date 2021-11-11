@@ -48,7 +48,7 @@
 #define BL_REVERSED               1
 #define ML_REVERSED               0
 #define FL_REVERSED               1
-#define MOGO_REVERSED             1
+#define MOGO_REVERSED             0
 #define LIFT_REVERSED             1
 
 
@@ -69,7 +69,7 @@
 #define STRAFE_ENC_TOP_PORT      'Z'
 #define STRAFE_ENC_BOTTOM_PORT   'Z'
 #define DETECTOR_MIDDLE_PORT     'Z'
-#define LIFT_POTENTIOMETER_PORT  'A'
+#define LIFT_POTENTIOMETER_PORT  'H'
 #define MOGO_POTENTIOMETER_PORT  'G'
 
 #define DETECTOR_BOTTOM_PORT     'Z'

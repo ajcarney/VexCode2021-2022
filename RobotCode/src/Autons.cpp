@@ -27,7 +27,7 @@ int Autons::selected_number = 1;
 
 Autons::Autons( )
 {
-    debug_auton_num = 7;  // TODO: this should be dynamically set because it causes a lot of errors otherwise  //ADDED BY NOLAN PENDING REVIEW
+    debug_auton_num = 9;  // TODO: this should be dynamically set because it causes a lot of errors otherwise  //ADDED BY NOLAN PENDING REVIEW
     driver_control_num = 1;
 }
 
@@ -71,7 +71,7 @@ void Autons::pid_straight_drive() {
   chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
   chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
 
-  mogo.move_to(3400, false);
+  mogo.move_to(3500, false);
 //  chassis.turn_left(51.5, 300, 1000, false); //Turn PID test
 //  int uid = chassis.okapi_pid_straight_drive(1500, 10000, 6000, false, 0); //Drives foward to test pid_straight_drive
 }
@@ -280,8 +280,8 @@ void Autons::skills() {
       uid = chassis.okapi_pid_straight_drive(-1300, 5000, 800, false, 0); //drive foward a bit
       chassis.turn_right(88, 300, 1000, false); //Turns right
       uid = chassis.okapi_pid_straight_drive(-3500, 5000, 3200, false, 0); //drive backwards a bit
-      // mogo.move_to(-50, false);
-      // uid = chassis.okapi_pid_straight_drive(-1000, 6000, 800, false, 0); //drive backwards a bit
+      mogo.move_to(3500, false);
+      uid = chassis.okapi_pid_straight_drive(-1000, 6000, 800, false, 0); //drive backwards a bit
       // mogo.move_to(50, false);
       // pros::delay(500);
       // lift.move_to(50, false);
@@ -312,22 +312,20 @@ void Autons::MidMogoLeft() {
     uid = chassis.okapi_pid_straight_drive(1300, 7000, 1100, false, 0); //Drives back into home zone
     Motors::piston2.set_value(true);  //ADD PISTON OPEN
     uid = chassis.okapi_pid_straight_drive(1000, 6000, 500, false, 0); //Drives back into home zone
-    chassis.turn_left(65, 300, 1000, false); //Turns towards alliance mogo
+    chassis.turn_left(68, 300, 1000, false); //Turns towards alliance mogo
     uid = chassis.okapi_pid_straight_drive(-300, 6000, 380, false, 0); //Drives into alliance mogo to drop rings
-    lift.move_to(1350, false);  //ADD 6 BAR LIFT UP
+    lift.move_to(1350, false, 2000);  //ADD 6 BAR LIFT UP
     uid = chassis.okapi_pid_straight_drive(150, 6000, 380, false, 0); //Drives into alliance mogo to drop rings
     Motors::piston1.set_value(true);  //ADD PISTON OPEN
-    pros::delay(500);
-    uid = chassis.okapi_pid_straight_drive(-150, 6000, 380, false, 0); //Reverses away from alliance mogo
-    lift.move_to(900, false);  //ADD 6 BAR LIFT Down
-    // uid = chassis.okapi_pid_straight_drive(625, 6000, 2500, false, 0); //Drives into alliance mogo
-    // Motors::piston1.set_value(true);  //ADD PISTON CLOSE
-    // lift.move_to(1900, false);  //ADD 6 BAR LIFT UP
-    // uid = chassis.okapi_pid_straight_drive(150, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
-    // Motors::piston1.set_value(false);
-    // uid = chassis.okapi_pid_straight_drive(-300, 6000, 2500, false, 0); //Backs away from bridge in sync with the six bar lift
-    // lift.move_to(900, false);  //ADD 6 BAR LIFT Down
-
+    pros::delay(250);
+    uid = chassis.okapi_pid_straight_drive(-500, 6000, 1000, false, 0); //Reverses away from alliance mogo
+    lift.move_to(900, false, 2000);  //ADD 6 BAR LIFT Down
+    chassis.turn_left(175, 300, 1000, false); //Turns towards alliance mogo
+    mogo.move_to(3500, false, 1000);
+    Motors::piston2.set_value(false);  //ADD PISTON OPEN
+    uid = chassis.okapi_pid_straight_drive(-1200, 4000, 1500, false, 0); //Reverses away from alliance mogo
+    mogo.move_to(1700, false);
+    Motors::piston3.set_value(false);  //ADD PISTON OPEN
 }
 
 void Autons::MidMogoRight() {
@@ -365,8 +363,77 @@ void Autons::MidMogoRight() {
     Motors::piston1.set_value(false);
     pros::delay(500);
     uid = chassis.okapi_pid_straight_drive(-800, 6000, 1000, false, 0); //Drives back into home zone
+}
+
+void Autons::CenterMogoleft() {
+  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    LiftController lift(Motors::lift);
+    MogoController mogo(Motors::mogo_lift);
+    PositionTracker* tracker = PositionTracker::get_instance();
+    tracker->start_thread();
+    tracker->enable_imu();
+    tracker->set_log_level(0);
+    tracker->set_position({0, 0, 0});
+    chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+    chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
+
+
+// Middle Mogo LEFT
+  //  Motors::piston2.set_value(false);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    Motors::piston1.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    int uid = chassis.okapi_pid_straight_drive(1500, 7000, 1650, false, 0); //Drives backwards into middle mogo
+    chassis.turn_right(60, 300, 1000, false); //Turns towards alliance mogo
+    uid = chassis.okapi_pid_straight_drive(1900, 7000, 1650, false, 0); //Drives backwards into middle mogo
+    Motors::piston1.set_value(false);   //ADD PISTON CLOSE
+    chassis.turn_left(15, 300, 1000, false); //Turns towards alliance mogo
+    uid = chassis.okapi_pid_straight_drive(-2200, 7000, 3000, false, 0); //Drives back into home zone
+    Motors::piston1.set_value(true);  //ADD PISTON OPEN
+    uid = chassis.okapi_pid_straight_drive(-300, 7000, 3000, false, 0); //Drives back into home zone
+    chassis.turn_left(35, 300, 1000, false); //Turns towards alliance mogo
+    mogo.move_to(3500, false);
+    uid = chassis.okapi_pid_straight_drive(-2200, 7000, 3000, false, 0); //Drives back into home zone
+    mogo.move_to(1800, false);
+    chassis.turn_left(90, 300, 1000, false); //Turns towards alliance mogo
+    uid = chassis.okapi_pid_straight_drive(200, 7000, 3000, false, 0); //Drives back into home zone
 
 }
+
+void Autons::CenterMogoRight() {
+  Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    LiftController lift(Motors::lift);
+    MogoController mogo(Motors::mogo_lift);
+    PositionTracker* tracker = PositionTracker::get_instance();
+    tracker->start_thread();
+    tracker->enable_imu();
+    tracker->set_log_level(0);
+    tracker->set_position({0, 0, 0});
+    chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
+    chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
+
+
+// Middle Mogo LEFT
+  //  Motors::piston2.set_value(false);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    Motors::piston2.set_value(true);    //ADD PISTON OPEN asynchronous WITH DRIVE
+    int uid = chassis.okapi_pid_straight_drive(-1900, 7000, 1650, false, 0); //Drives backwards into middle mogo
+    Motors::piston2.set_value(false);   //ADD PISTON CLOSE
+    uid = chassis.okapi_pid_straight_drive(1300, 7000, 1100, false, 0); //Drives back into home zone
+    Motors::piston2.set_value(true);  //ADD PISTON OPEN
+    uid = chassis.okapi_pid_straight_drive(1000, 6000, 500, false, 0); //Drives back into home zone
+    chassis.turn_left(68, 300, 1000, false); //Turns towards alliance mogo
+    uid = chassis.okapi_pid_straight_drive(-300, 6000, 380, false, 0); //Drives into alliance mogo to drop rings
+    lift.move_to(1350, false, 2000);  //ADD 6 BAR LIFT UP
+    uid = chassis.okapi_pid_straight_drive(150, 6000, 380, false, 0); //Drives into alliance mogo to drop rings
+    Motors::piston1.set_value(true);  //ADD PISTON OPEN
+    pros::delay(250);
+    uid = chassis.okapi_pid_straight_drive(-500, 6000, 1000, false, 0); //Reverses away from alliance mogo
+    lift.move_to(900, false, 2000);  //ADD 6 BAR LIFT Down
+    chassis.turn_left(175, 300, 1000, false); //Turns towards alliance mogo
+    mogo.move_to(3500, false, 1000);
+    Motors::piston2.set_value(false);  //ADD PISTON OPEN
+    uid = chassis.okapi_pid_straight_drive(-1200, 4000, 1500, false, 0); //Reverses away from alliance mogo
+    mogo.move_to(1800, false);
+}
+
 
 void Autons::run_autonomous() {
     switch(selected_number) {
@@ -391,6 +458,14 @@ void Autons::run_autonomous() {
 
         case 6:
             MidMogoRight();
+            break;
+
+        case 7:
+            CenterMogoleft();
+            break;
+
+        case 8:
+            CenterMogoRight();
             break;
     }
 }
