@@ -23,7 +23,7 @@ namespace Motors
 
     pros::ADIDigitalOut piston1 {PISTON1_MOTOR};
     pros::ADIDigitalOut piston2 {PISTON2_MOTOR};
-    pros::ADIDigitalOut piston3 {pros::ext_adi_port_pair_t(EXPANDER_PORT, PISTON3_MOTOR)};
+    pros::ADIDigitalOut piston3 {PISTON3_MOTOR};
 
     double chassis_gear_ratio = 3 / 5;
 
