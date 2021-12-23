@@ -38,8 +38,7 @@ void driver_control(void*)
     Controller controllers;
 
     Chassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_right, Motors::mid_left, Sensors::left_encoder, Sensors::right_encoder, CHASSIS_WIDTH, CHASSIS_GEAR_RATIO);
-    LiftController lift{Motors::lift};
-    MogoController mogo{Motors::mogo_lift};
+    LiftController lift{Motors::lift1, Motors::lift2};
 
     int left_analog_y = 0;
     int right_analog_y = 0;
@@ -91,7 +90,7 @@ void driver_control(void*)
             p2_state = !p2_state;
             Motors::piston2.set_value(p2_state);
         }
-        
+
         if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {    // toggle piston 3
             p3_state = !p3_state;
             Motors::piston3.set_value(p3_state);
@@ -108,11 +107,11 @@ void driver_control(void*)
 
     // mogo movement
         if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1)) {
-            mogo.move_up();
+            // mogo.move_up();
         } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L2)) {
-            mogo.move_down();
+            // mogo.move_down();
         } else {
-            mogo.stop();
+            // mogo.stop();
         }
 
     // misc. functions

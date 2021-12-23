@@ -40,7 +40,8 @@
 #define ML_MOTOR                  15
 #define FL_MOTOR                  2
 #define MOGO_MOTOR                13
-#define LIFT_MOTOR                1
+#define LIFT1_MOTOR               1
+#define LIFT2_MOTOR               11
 
 #define BR_REVERSED               0
 #define MR_REVERSED               1
@@ -48,13 +49,14 @@
 #define BL_REVERSED               1
 #define ML_REVERSED               0
 #define FL_REVERSED               1
-#define MOGO_REVERSED             0
-#define LIFT_REVERSED             1
+#define LIFT1_REVERSED            1
+#define LIFT2_REVERSED            0
 
 
 #define PISTON1_MOTOR            'C'
 #define PISTON2_MOTOR            'A'
 #define PISTON3_MOTOR            'B'
+#define PISTON4_MOTOR            'D'
 
 // @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges
 #define CHASSIS_GEARSET           pros::E_MOTOR_GEARSET_06
@@ -69,8 +71,8 @@
 #define STRAFE_ENC_TOP_PORT      'Z'
 #define STRAFE_ENC_BOTTOM_PORT   'Z'
 #define DETECTOR_MIDDLE_PORT     'Z'
-#define LIFT_POTENTIOMETER_PORT  'H'
-#define MOGO_POTENTIOMETER_PORT  'G'
+#define LIFT_POTENTIOMETER_PORT  'Z'
+#define MOGO_POTENTIOMETER_PORT  'Z'
 
 #define DETECTOR_BOTTOM_PORT     'Z'
 #define DETECTOR_TOP_PORT        'Z'
@@ -85,7 +87,7 @@
 #define LED_B                     'Z'
 
 #define CHASSIS_WIDTH            16
-#define CHASSIS_GEAR_RATIO      5/3
+#define CHASSIS_GEAR_RATIO      3/5
 
 #define LIFT_SETPOINTS  1, 2, 3
 #define MOGO_SETPOINTS  1, 2, 3

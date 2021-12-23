@@ -510,8 +510,8 @@ void MotorsDebug::debug()
 
     MotorsDebugTab l_chassis_tab_debug( {&Motors::front_left, &Motors::back_left}, {"Front Left", "Back Left"}, l_chassis_tab );
     MotorsDebugTab r_chassis_tab_debug( {&Motors::front_right, &Motors::back_right}, {"Front Right", "Back Right"}, r_chassis_tab );
-    MotorsDebugTab mogo_tab_debug( {&Motors::lift}, {"mogo"}, mogo_tab );
-    MotorsDebugTab lift_tab_debug( {&Motors::mogo_lift}, {"lift"}, lift_tab );
+    MotorsDebugTab mogo_tab_debug( {&Motors::lift1, &Motors::lift2}, {"lift1", "lift2"}, mogo_tab );
+    MotorsDebugTab lift_tab_debug( {&Motors::mid_right, &Motors::mid_left}, {"extra right", "extra left"}, lift_tab );
 
     while ( cont )
     {

@@ -50,7 +50,7 @@ typedef struct {
 class LiftController
 {
     private:
-        static Motor *lift_motor;
+        static std::vector<Motor*> motors;
 
         static int num_instances;
 
@@ -69,7 +69,8 @@ class LiftController
         static void lift_motion_task(void*);
 
     public:
-        LiftController(Motor& lift);
+        LiftController(Motor& motor);
+        LiftController(Motor& lift1, Motor& lift2);
         ~LiftController();
 
         int cycle_setpoint(int direction, bool asynch);

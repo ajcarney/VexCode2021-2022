@@ -1,15 +1,5 @@
-/**
- * @file: ./RobotCode/src/objects/subsystems/chassis.hpp
- * @author: Aiden Carney
- * @reviewed_on: 2/16/2020
- * @reviewed_by: Aiden Carney
- *
- * Contains class for the chassis subsystem
- * has methods for driving during autonomous including turning and driving straight
- */
-
-#ifndef __CHASSIS_HPP__
-#define __CHASSIS_HPP__
+#ifndef __PTO_CHASSIS_HPP__
+#define __PTO_CHASSIS_HPP__
 
 #include <tuple>
 #include <queue>
@@ -19,42 +9,18 @@
 #include "../motors/Motor.hpp"
 #include "../sensors/Sensors.hpp"
 #include "../../Configuration.hpp"
-
-
-std::vector<double> generate_chassis_velocity_profile(int encoder_ticks, const std::function<double(double)>& max_acceleration, double max_decceleration, double max_velocity, double initial_velocity);
+#include "chassis.hpp"
 
 
 typedef enum {
-    e_pid_straight_drive,
-    e_okapi_pid_straight_drive,
-    e_profiled_straight_drive,
-    e_turn,
-    e_drive_to_point,
-    e_turn_to_point,
-    e_turn_to_angle
-} chassis_commands;
-
-
-typedef struct {
-    long double x;
-    long double y;
-    long double dx;
-    long double dy;
-    long double radius;
-    long double dtheta;
-    std::string get_string() {
-        std::string str = (
-            + "{x: " + std::to_string(this->x)
-            + " y: " + std::to_string(this->y)
-            + " dx: " + std::to_string(this->dx)
-            + " dy: " + std::to_string(this->dy)
-            + " radius: " + std::to_string(this->radius)
-            + " dtheta: " + std::to_string(this->dtheta)
-            + "}"
-        );
-        return str;
-    }
-} waypoint;
+    e_pto_pid_straight_drive,
+    e_pto_okapi_pid_straight_drive,
+    e_pto_profiled_straight_drive,
+    e_pto_turn,
+    e_pto_drive_to_point,
+    e_pto_turn_to_point,
+    e_pto_turn_to_angle
+} pto_chassis_commands;
 
 
 typedef struct {
@@ -69,28 +35,30 @@ typedef struct {
     double motor_slew=INT32_MAX;
     bool correct_heading=true;
     bool log_data=false;
-} chassis_params;
-
+} pto_chassis_params;
 
 
 typedef struct {
     chassis_params args;
     int command_uid;
     chassis_commands command;
-} chassis_action;
+} pto_chassis_action;
 
 
-/**
- * @see: Motors.hpp
- *
- * contains methods to allow for easy control of the robot during
- * the autonomous period
- */
-class Chassis
+
+class PTOChassis
 {
     private:
-        static std::vector<Motor*> r_motors;
-        static std::vector<Motor*> l_motors;
+        static Motor* r_back;
+        static Motor* r_front;
+        static Motor* r_extra;
+
+        static Motor* l_back;
+        static Motor* l_front;
+        static Motor* l_extra;
+
+        static pros::ADIDigitalOut* pto1;
+        static pros::ADIDigitalOut* pto2;
 
         static Encoder* left_encoder;
         static Encoder* right_encoder;
@@ -121,13 +89,17 @@ class Chassis
         static double width;
         static double gear_ratio;
 
+        static bool pto_state;
+
+        static void allow_movement();
+        static void stop_movement();
+
         static void chassis_motion_task(void*);
 
 
     public:
-        Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &mid_right, Motor &mid_left, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
-        Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
-        ~Chassis();
+        PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &extra_left, Motor &extra_right, pros::ADIDigitalOut& piston1, pros::ADIDigitalOut& piston2, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
+        ~PTOChassis();
 
         int pid_straight_drive(double encoder_ticks, int relative_heading=0, int max_velocity=450, int timeout=INT32_MAX, bool asynch=false, bool correct_heading=true, double slew=0.2, bool log_data=false);
         int profiled_straight_drive(double encoder_ticks, int max_velocity=450, int timeout=INT32_MAX, bool asynch=false, bool correct_heading=true, int relative_heading=0, bool log_data=false);
@@ -145,6 +117,14 @@ class Chassis
         void set_heading_gains(pid new_gains);
         void set_turn_gains(pid new_gains);
 
+
+
+        static void pto_move_voltage(int r_voltage, int l_voltage);
+        static void pto_move_velocity(int r_velocity, int l_velocity);
+        void toggle_pto();
+        void pto_enable_drive();
+        void pto_enable_rings();
+
         /**
          * @param: int voltage -> the voltage on interval [-127, 127] to set the motor to
          * @return: None
@@ -160,6 +140,8 @@ class Chassis
          * sets brake mode of all motors
          */
         void set_brake_mode( pros::motor_brake_mode_e_t new_brake_mode );
+
+
 
 
 
@@ -188,6 +170,11 @@ class Chassis
          * disables internal slew rate of the motor
          */
         void disable_slew( );
+
+
+
+
+
 
         void wait_until_finished(int uid);
         bool is_finished(int uid);

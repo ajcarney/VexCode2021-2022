@@ -1,13 +1,3 @@
-/**
- * @file: ./RobotCode/src/objects/subsystems/chassis.cpp
- * @author: Aiden Carney
- * @reviewed_on: 2/16/2020
- * @reviewed_by: Aiden Carney
- *
- * @see: chassis.hpp
- *
- * contains implementation for chassis subsytem class
- */
 
 #include <cmath>
 #include <algorithm>
@@ -20,138 +10,54 @@
 #include "../serial/Logger.hpp"
 #include "../position_tracking/PositionTracker.hpp"
 #include "chassis.hpp"
+#include "pto_chassis.hpp"
 #include "../../Configuration.hpp"
 
 
 
-std::vector<double> generate_chassis_velocity_profile(int encoder_ticks, const std::function<double(double)>& max_acceleration, double max_decceleration, double max_velocity, double initial_velocity) {
-    if(encoder_ticks <= 0) {
-        Logger logger;
-        log_entry entry;
-        entry.content = (
-            "[ERROR] " + std::string("PROFILE_CALCULATION")
-            + ", Time: " + std::to_string(pros::millis())
-            + ", Could not generate profile with negative or 0 encoder ticks"
-            + ", enc_ticks: " + std::to_string(encoder_ticks)
-            + ", max_velocity: " + std::to_string(max_velocity)
-        );
-        entry.stream = "clog";
-        logger.add(entry);
-        pros::delay(100); // add delay for msg to be logged
-        throw std::invalid_argument("Cannot generate profile with negative or 0 encoder ticks");
-    }
+int PTOChassis::num_instances = 0;
+std::queue<chassis_action> PTOChassis::command_queue;
+std::vector<int> PTOChassis::commands_finished;
+std::atomic<bool> PTOChassis::command_start_lock = ATOMIC_VAR_INIT(false);
+std::atomic<bool> PTOChassis::command_finish_lock = ATOMIC_VAR_INIT(false);
 
-    if(max_decceleration || max_acceleration == 0) {
-        Logger logger;
-        log_entry entry;
-        entry.content = (
-            "[ERROR] " + std::string("PROFILE_CALCULATION")
-            + ", Time: " + std::to_string(pros::millis())
-            + ", Could not generate profile with 0 accleration or decceleration"
-            + ", enc_ticks: " + std::to_string(encoder_ticks)
-            + ", max_velocity: " + std::to_string(max_velocity)
-        );
-        entry.stream = "clog";
-        logger.add(entry);
-        pros::delay(100); // add delay for msg to be logged
-        throw std::invalid_argument("(Profile Gen) Could not generate profile with 0 accleration or decceleration");
-    }
+Motor* PTOChassis::r_back;
+Motor* PTOChassis::r_front;
+Motor* PTOChassis::r_extra;
+Motor* PTOChassis::l_back;
+Motor* PTOChassis::l_front;
+Motor* PTOChassis::l_extra;
 
-    std::vector<double> profile = {initial_velocity};
+pros::ADIDigitalOut* PTOChassis::pto1;
+pros::ADIDigitalOut* PTOChassis::pto2;
 
-    int i = 0;
-    while(i < encoder_ticks) {
-        int ticks_left = encoder_ticks - i;
-        int ticks_to_deccelerate = profile.at(i) / max_decceleration;
-        if(ticks_to_deccelerate < ticks_left) {
-            double step = profile.at(i) + max_acceleration(i);
-            if(step > max_velocity) {
-                step = max_velocity;
-            }
-            profile.push_back(step);
-        } else {
-            profile.push_back(profile.at(i) - max_decceleration);
-        }
+bool PTOChassis::pto_state;
 
-        i += 1;
-    }
-
-    return profile;
-}
+Encoder* PTOChassis::left_encoder;
+Encoder* PTOChassis::right_encoder;
+double PTOChassis::width;
+double PTOChassis::gear_ratio;
+double PTOChassis::wheel_diameter;
 
 
-
-int Chassis::num_instances = 0;
-std::queue<chassis_action> Chassis::command_queue;
-std::vector<int> Chassis::commands_finished;
-std::atomic<bool> Chassis::command_start_lock = ATOMIC_VAR_INIT(false);
-std::atomic<bool> Chassis::command_finish_lock = ATOMIC_VAR_INIT(false);
-
-std::vector<Motor*> Chassis::r_motors;
-std::vector<Motor*> Chassis::l_motors;
+pid PTOChassis::pid_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid PTOChassis::profiled_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid PTOChassis::okapi_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid PTOChassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
+pid PTOChassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
 
 
-Encoder* Chassis::left_encoder;
-Encoder* Chassis::right_encoder;
-double Chassis::width;
-double Chassis::gear_ratio;
-double Chassis::wheel_diameter;
-
-
-pid Chassis::pid_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid Chassis::profiled_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid Chassis::okapi_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid Chassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
-pid Chassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
-
-
-Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &mid_left, Motor &mid_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing /*1*/, double wheel_size /*4.05*/)
+PTOChassis::PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &extra_left, Motor &extra_right, pros::ADIDigitalOut& piston1, pros::ADIDigitalOut& piston2, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing, double wheel_size)
 {
-    r_motors.clear();
-    r_motors.push_back(&front_right);
-    r_motors.push_back(&back_right);
-    r_motors.push_back(&mid_right);
+    r_back = &back_right;
+    r_front = &front_right;
+    r_extra = &extra_right;
+    l_back = &back_left;
+    l_front = &front_left;
+    l_extra = &extra_left;
 
-    l_motors.clear();
-    l_motors.push_back(&front_left);
-    l_motors.push_back(&back_left);
-    l_motors.push_back(&mid_left);
-
-    left_encoder = &l_encoder;
-    right_encoder = &r_encoder;
-
-    wheel_diameter = wheel_size;
-    gear_ratio = gearing;
-    width = chassis_width;
-
-    if(num_instances == 0 || thread == NULL) {
-        thread = new pros::Task( chassis_motion_task, (void*)NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "chassis_thread");
-    }
-
-    num_instances += 1;
-
-    for(Motor* motor : r_motors) {
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-        motor->set_motor_mode(e_voltage);
-        motor->disable_slew();
-    }
-    for(Motor* motor : l_motors) {
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-        motor->set_motor_mode(e_voltage);
-        motor->disable_slew();
-    }
-
-}
-
-
-Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing, double wheel_size) {
-    r_motors.clear();
-    r_motors.push_back(&front_right);
-    r_motors.push_back(&back_right);
-
-    l_motors.clear();
-    l_motors.push_back(&front_left);
-    l_motors.push_back(&back_left);
+    pto1 = &piston1;
+    pto2 = &piston2;
 
     left_encoder = &l_encoder;
     right_encoder = &r_encoder;
@@ -166,22 +72,11 @@ Chassis::Chassis( Motor &front_left, Motor &front_right, Motor &back_left, Motor
 
     num_instances += 1;
 
-    for(Motor* motor : r_motors) {
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-        motor->set_motor_mode(e_voltage);
-        motor->disable_slew();
-    }
-    for(Motor* motor : l_motors) {
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-        motor->set_motor_mode(e_voltage);
-        motor->disable_slew();
-    }
 }
 
 
 
-
-Chassis::~Chassis() {
+PTOChassis::~PTOChassis() {
     num_instances -= 1;
     if(num_instances == 0) {
         delete thread;
@@ -190,7 +85,7 @@ Chassis::~Chassis() {
 
 
 
-double Chassis::get_angle_to_turn(double x, double y, int explicit_direction /*1*/) {
+double PTOChassis::get_angle_to_turn(double x, double y, int explicit_direction /*1*/) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
     long double dx = x - tracker->get_position().x_pos;
@@ -249,7 +144,7 @@ double Chassis::get_angle_to_turn(double x, double y, int explicit_direction /*1
 }
 
 
-double Chassis::get_angle_to_turn(double theta) {
+double PTOChassis::get_angle_to_turn(double theta) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
     // current angle is bounded by [-pi, pi] re map it to [0, pi]
@@ -273,7 +168,7 @@ double Chassis::get_angle_to_turn(double theta) {
 
 
 
-void Chassis::chassis_motion_task(void*) {
+void PTOChassis::chassis_motion_task(void*) {
     while(1) {
         while(1) { // delay unitl there is a command in the queue
             while ( command_start_lock.exchange( true ) ); //aquire lock and release it later
@@ -430,7 +325,7 @@ void Chassis::chassis_motion_task(void*) {
 
 
 
-void Chassis::t_pid_straight_drive(chassis_params args) {
+void PTOChassis::t_pid_straight_drive(chassis_params args) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
     double kP_l = pid_sdrive_gains.kP;
@@ -443,19 +338,7 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
     double kD_r = pid_sdrive_gains.kD;
     double i_max_r = pid_sdrive_gains.i_max;
 
-    for(Motor* motor : r_motors) {
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_builtin_velocity_pid);
-        motor->disable_slew();
-    }
-
-    for(Motor* motor : l_motors) {
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_builtin_velocity_pid);
-        motor->disable_slew();
-    }
+    allow_movement();
 
 
     int r_id = right_encoder->get_unique_id(true);
@@ -641,27 +524,14 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
             break; // end before timeout
         }
 
-        for(Motor* motor : r_motors) {
-            motor->move_velocity(right_velocity);
-        }
-        for(Motor* motor : l_motors) {
-            motor->move_velocity(left_velocity);
-        }
+        pto_move_velocity(right_velocity, left_velocity);
+
 
         pros::delay(10);
     } while ( pros::millis() < start_time + args.timeout );
 
 
-    for(Motor* motor : r_motors) {
-        motor->enable_driver_control();
-        motor->set_motor_mode(e_voltage);
-        motor->set_voltage(0);
-    }
-    for(Motor* motor : l_motors) {
-        motor->enable_driver_control();
-        motor->set_motor_mode(e_voltage);
-        motor->set_voltage(0);
-    }
+    stop_movement();
 
 
     right_encoder->forget_position(r_id);  // free up space in the encoders log
@@ -669,7 +539,7 @@ void Chassis::t_pid_straight_drive(chassis_params args) {
 }
 
 
-void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
+void PTOChassis::t_okapi_pid_straight_drive(chassis_params args) {
     PositionTracker* tracker = PositionTracker::get_instance();
     int start_time = pros::millis();
     auto pos_r_controller = okapi::IterativeControllerFactory::posPID(okapi_sdrive_gains.kP, okapi_sdrive_gains.kI, okapi_sdrive_gains.kD);
@@ -680,15 +550,7 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
     heading_controller.setTarget(0);
 
 
-    for(Motor* motor : r_motors) {
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_voltage);
-    }
-
-    for(Motor* motor : l_motors) {
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_voltage);
-    }
+    allow_movement();
 
 
     int r_id = right_encoder->get_unique_id(true);
@@ -724,8 +586,8 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
         left_voltage += heading_correction;
         right_voltage -= heading_correction;
 
-        previous_l_velocities.push_back(l_motors.at(0)->get_actual_velocity());
-        previous_r_velocities.push_back(r_motors.at(0)->get_actual_velocity());
+        previous_l_velocities.push_back(l_front->get_actual_velocity());
+        previous_r_velocities.push_back(r_front->get_actual_velocity());
         if(previous_l_velocities.size() > velocity_history) {
             previous_l_velocities.erase(previous_l_velocities.begin());
         }
@@ -742,32 +604,20 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
             && previous_l_velocities.size() == velocity_history
             && std::abs(r_difference) < 2
             && previous_r_velocities.size() == velocity_history
-            && r_motors.at(0)->get_actual_velocity() < 2
-            && l_motors.at(0)->get_actual_velocity() < 2
+            && r_front->get_actual_velocity() < 2
+            && l_front->get_actual_velocity() < 2
         ) {
             break; // end before timeout
         }
 
-        for(Motor* motor : r_motors) {
-            motor->set_voltage(right_voltage);
-        }
-        for(Motor* motor : l_motors) {
-            motor->set_voltage(left_voltage);
-        }
+        pto_move_voltage(right_voltage, left_voltage);
 
 
         pros::delay(10);
     }
 
 
-    for(Motor* motor : r_motors) {
-        motor->set_voltage(0);
-        motor->enable_driver_control();
-    }
-    for(Motor* motor : l_motors) {
-        motor->set_voltage(0);
-        motor->enable_driver_control();
-    }
+    stop_movement();
 
 
     right_encoder->forget_position(r_id);  // free up space in the encoders log
@@ -775,7 +625,7 @@ void Chassis::t_okapi_pid_straight_drive(chassis_params args) {
 }
 
 
-void Chassis::t_profiled_straight_drive(chassis_params args) {
+void PTOChassis::t_profiled_straight_drive(chassis_params args) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
     double kP = profiled_sdrive_gains.kP;
@@ -784,15 +634,7 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
     double i_max = profiled_sdrive_gains.i_max;
 
 
-    for(Motor* motor : r_motors) {
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_builtin_velocity_pid);
-    }
-    for(Motor* motor : l_motors) {
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_builtin_velocity_pid);
-    }
-
+    allow_movement();
 
     int r_id = right_encoder->get_unique_id(true);
     int l_id = left_encoder->get_unique_id(true);
@@ -951,30 +793,14 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
             break; // end before timeout
         }
 
-        for(Motor* motor : r_motors) {
-            motor->move_velocity(velocity_r);
-        }
-        for(Motor* motor : l_motors) {
-            motor->move_velocity(velocity_l);
-        }
+        pto_move_velocity(velocity_r, velocity_l);
 
         pros::delay(10);
     } while (pros::millis() < start_time + args.timeout);
 
 
 
-    for(Motor* motor : r_motors) {
-        motor->set_motor_mode(e_voltage);
-        motor->set_voltage(0);
-        motor->enable_driver_control();
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-    }
-    for(Motor* motor : l_motors) {
-        motor->set_motor_mode(e_voltage);
-        motor->set_voltage(0);
-        motor->enable_driver_control();
-        motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-    }
+    stop_movement();
 
 
     right_encoder->forget_position(r_id);  // free up space in the encoders log
@@ -984,7 +810,7 @@ void Chassis::t_profiled_straight_drive(chassis_params args) {
 
 
 
-void Chassis::t_turn(chassis_params args) {
+void PTOChassis::t_turn(chassis_params args) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
     double kP = turn_gains.kP;
@@ -992,16 +818,7 @@ void Chassis::t_turn(chassis_params args) {
     double kD = turn_gains.kD;
     double i_max = turn_gains.i_max;
 
-    for(Motor* motor : r_motors) {
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_builtin_velocity_pid);
-        motor->move_velocity(0);
-    }
-    for(Motor* motor : l_motors) {
-        motor->disable_driver_control();
-        motor->set_motor_mode(e_builtin_velocity_pid);
-        motor->move_velocity(0);
-    }
+    allow_movement();
 
 
     int r_id = right_encoder->get_unique_id();
@@ -1163,40 +980,19 @@ void Chassis::t_turn(chassis_params args) {
             // && l_velocity < 2
             // && r_velocity < 2
         ) {  // velocity change has been minimal, so stop
-            for(Motor* motor : r_motors) {
-                motor->set_motor_mode(e_voltage);
-                motor->set_voltage(0);
-            }
-            for(Motor* motor : l_motors) {
-                motor->set_motor_mode(e_voltage);
-                motor->set_voltage(0);
-            }
+            pto_move_voltage(0, 0);
 
             break; // end before timeout
         }
 
-        for(Motor* motor : r_motors) {
-            motor->move_velocity(r_velocity);
-        }
-        for(Motor* motor : l_motors) {
-            motor->move_velocity(l_velocity);
-        }
+        pto_move_velocity(r_velocity, l_velocity);
 
 
         pros::delay(10);
     } while ( pros::millis() < (start_time + args.timeout) );
 
 
-    for(Motor* motor : r_motors) {
-        motor->set_motor_mode(e_voltage);
-        motor->set_voltage(0);
-        motor->enable_driver_control();
-    }
-    for(Motor* motor : l_motors) {
-        motor->set_motor_mode(e_voltage);
-        motor->set_voltage(0);
-        motor->enable_driver_control();
-    }
+    stop_movement();
 
     right_encoder->forget_position(r_id);  // free up space in the encoders log
     left_encoder->forget_position(l_id);
@@ -1204,7 +1000,7 @@ void Chassis::t_turn(chassis_params args) {
 
 
 
-void Chassis::t_move_to_waypoint(chassis_params args, waypoint point) {
+void PTOChassis::t_move_to_waypoint(chassis_params args, waypoint point) {
     PositionTracker* tracker = PositionTracker::get_instance();
 
     long double dx = point.x - tracker->get_position().x_pos;
@@ -1311,8 +1107,71 @@ void Chassis::t_move_to_waypoint(chassis_params args, waypoint point) {
 }
 
 
+void PTOChassis::allow_movement() {
+    r_front->disable_driver_control();
+    r_front->set_motor_mode(e_builtin_velocity_pid);
+    r_front->move_velocity(0);
+    r_front->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
-int Chassis::pid_straight_drive(double encoder_ticks, int relative_heading /*0*/, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool correct_heading /*true*/, double slew /*0.2*/, bool log_data /*false*/) {
+    r_back->disable_driver_control();
+    r_back->set_motor_mode(e_builtin_velocity_pid);
+    r_back->move_velocity(0);
+    r_back->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
+    l_front->disable_driver_control();
+    l_front->set_motor_mode(e_builtin_velocity_pid);
+    l_front->move_velocity(0);
+    l_front->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
+    l_back->disable_driver_control();
+    l_back->set_motor_mode(e_builtin_velocity_pid);
+    l_back->move_velocity(0);
+    l_back->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
+    if(!pto_state) {  // extra motors enabled use them
+        r_extra->disable_driver_control();
+        r_extra->set_motor_mode(e_builtin_velocity_pid);
+        r_extra->move_velocity(0);
+        r_extra->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
+        l_extra->disable_driver_control();
+        l_extra->set_motor_mode(e_builtin_velocity_pid);
+        l_extra->move_velocity(0);
+        l_extra->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    }
+}
+
+
+void PTOChassis::stop_movement() {
+    r_front->set_motor_mode(e_voltage);
+    r_front->set_voltage(0);
+    r_front->enable_driver_control();
+
+    r_back->set_motor_mode(e_voltage);
+    r_back->set_voltage(0);
+    r_back->enable_driver_control();
+
+    l_front->set_motor_mode(e_voltage);
+    l_front->set_voltage(0);
+    l_front->enable_driver_control();
+
+    l_back->set_motor_mode(e_voltage);
+    l_back->set_voltage(0);
+    l_back->enable_driver_control();
+
+    if(!pto_state) {  // extra motors enabled use them
+        r_extra->set_motor_mode(e_voltage);
+        r_extra->set_voltage(0);
+        r_extra->enable_driver_control();
+
+        l_extra->set_motor_mode(e_voltage);
+        l_extra->set_voltage(0);
+        l_extra->enable_driver_control();
+    }
+}
+
+
+int PTOChassis::pid_straight_drive(double encoder_ticks, int relative_heading /*0*/, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool correct_heading /*true*/, double slew /*0.2*/, bool log_data /*false*/) {
     chassis_params args;
     args.setpoint1 = encoder_ticks;
     args.setpoint2 = encoder_ticks;
@@ -1322,7 +1181,7 @@ int Chassis::pid_straight_drive(double encoder_ticks, int relative_heading /*0*/
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(encoder_ticks) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(encoder_ticks) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_pid_straight_drive};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1336,7 +1195,7 @@ int Chassis::pid_straight_drive(double encoder_ticks, int relative_heading /*0*/
     return uid;
 }
 
-int Chassis::profiled_straight_drive(double encoder_ticks, int max_velocity  /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool correct_heading /*true*/, int relative_heading /*0*/, bool log_data /*false*/) {
+int PTOChassis::profiled_straight_drive(double encoder_ticks, int max_velocity  /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool correct_heading /*true*/, int relative_heading /*0*/, bool log_data /*false*/) {
     chassis_params args;
     args.setpoint1 = encoder_ticks;
     args.setpoint2 = relative_heading;
@@ -1346,7 +1205,7 @@ int Chassis::profiled_straight_drive(double encoder_ticks, int max_velocity  /*4
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(encoder_ticks) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(encoder_ticks) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_profiled_straight_drive};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1360,7 +1219,7 @@ int Chassis::profiled_straight_drive(double encoder_ticks, int max_velocity  /*4
     return uid;
 }
 
-int Chassis::okapi_pid_straight_drive(double encoder_ticks, int max_voltage /*11000*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, int max_heading_correction /*5000*/) {
+int PTOChassis::okapi_pid_straight_drive(double encoder_ticks, int max_voltage /*11000*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, int max_heading_correction /*5000*/) {
     chassis_params args;
     args.setpoint1 = encoder_ticks;
     args.timeout = timeout;
@@ -1368,7 +1227,7 @@ int Chassis::okapi_pid_straight_drive(double encoder_ticks, int max_voltage /*11
     args.max_heading_voltage_correction = max_heading_correction;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(encoder_ticks) + 1) + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(encoder_ticks) + 1) + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_okapi_pid_straight_drive};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1382,7 +1241,7 @@ int Chassis::okapi_pid_straight_drive(double encoder_ticks, int max_voltage /*11
     return uid;
 }
 
-int Chassis::uneven_drive(double l_enc_ticks, double r_enc_ticks, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*false*/) {
+int PTOChassis::uneven_drive(double l_enc_ticks, double r_enc_ticks, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*false*/) {
     chassis_params args;
     args.setpoint1 = l_enc_ticks;
     args.setpoint2 = r_enc_ticks;
@@ -1393,7 +1252,7 @@ int Chassis::uneven_drive(double l_enc_ticks, double r_enc_ticks, int max_veloci
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(l_enc_ticks) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(l_enc_ticks) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_pid_straight_drive};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1409,7 +1268,7 @@ int Chassis::uneven_drive(double l_enc_ticks, double r_enc_ticks, int max_veloci
 
 
 
-int Chassis::turn_right(double degrees, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool log_data /*false*/) {
+int PTOChassis::turn_right(double degrees, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool log_data /*false*/) {
     chassis_params args;
     args.setpoint1 = degrees;
     args.max_velocity = max_velocity;
@@ -1417,7 +1276,7 @@ int Chassis::turn_right(double degrees, int max_velocity /*450*/, int timeout /*
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(degrees) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(degrees) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_turn};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1433,7 +1292,7 @@ int Chassis::turn_right(double degrees, int max_velocity /*450*/, int timeout /*
 
 
 
-int Chassis::turn_left(double degrees, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool log_data /*false*/) {
+int PTOChassis::turn_left(double degrees, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, bool log_data /*false*/) {
     chassis_params args;
     args.setpoint1 = -degrees;
     args.max_velocity = max_velocity;
@@ -1441,7 +1300,7 @@ int Chassis::turn_left(double degrees, int max_velocity /*450*/, int timeout /*I
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(degrees) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(degrees) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_turn};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1456,7 +1315,7 @@ int Chassis::turn_left(double degrees, int max_velocity /*450*/, int timeout /*I
 }
 
 
-int Chassis::drive_to_point(double x, double y, int recalculations /*0*/, int explicit_direction /*0*/, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool correct_heading /*true*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*true*/) {
+int PTOChassis::drive_to_point(double x, double y, int recalculations /*0*/, int explicit_direction /*0*/, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool correct_heading /*true*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*true*/) {
     chassis_params args;
     args.setpoint1 = x;
     args.setpoint2 = y;
@@ -1469,7 +1328,7 @@ int Chassis::drive_to_point(double x, double y, int recalculations /*0*/, int ex
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(x) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(x) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_drive_to_point};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1485,7 +1344,7 @@ int Chassis::drive_to_point(double x, double y, int recalculations /*0*/, int ex
 
 
 
-int Chassis::turn_to_point(double x, double y, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*true*/) {
+int PTOChassis::turn_to_point(double x, double y, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*true*/) {
     chassis_params args;
     args.setpoint1 = x;
     args.setpoint2 = y;
@@ -1495,7 +1354,7 @@ int Chassis::turn_to_point(double x, double y, int max_velocity /*450*/, int tim
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(x) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(x) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_turn_to_point};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1511,7 +1370,7 @@ int Chassis::turn_to_point(double x, double y, int max_velocity /*450*/, int tim
 
 
 
-int Chassis::turn_to_angle(double theta, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*true*/) {
+int PTOChassis::turn_to_angle(double theta, int max_velocity /*450*/, int timeout /*INT32_MAX*/, bool asynch /*false*/, double slew /*10*/, bool log_data /*true*/) {
     PositionTracker* tracker = PositionTracker::get_instance();
     chassis_params args;
     args.setpoint1 = tracker->to_radians(theta);
@@ -1521,7 +1380,7 @@ int Chassis::turn_to_angle(double theta, int max_velocity /*450*/, int timeout /
     args.log_data = log_data;
 
     // generate a unique id based on time, parameters, and seemingly random value of the voltage of one of the motors
-    int uid = pros::millis() * (std::abs(theta) + 1) + max_velocity + l_motors.at(0)->get_actual_voltage();
+    int uid = pros::millis() * (std::abs(theta) + 1) + max_velocity + r_back->get_actual_voltage();
 
     chassis_action command = {args, uid, e_turn_to_angle};
     while ( command_start_lock.exchange( true ) ); //aquire lock
@@ -1537,7 +1396,7 @@ int Chassis::turn_to_angle(double theta, int max_velocity /*450*/, int timeout /
 
 
 
-void Chassis::set_pid_sdrive_gains(pid new_gains) {
+void PTOChassis::set_pid_sdrive_gains(pid new_gains) {
     pid_sdrive_gains.kP = new_gains.kP;
     pid_sdrive_gains.kI = new_gains.kI;
     pid_sdrive_gains.kD = new_gains.kD;
@@ -1545,7 +1404,7 @@ void Chassis::set_pid_sdrive_gains(pid new_gains) {
     pid_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_profiled_sdrive_gains(pid new_gains) {
+void PTOChassis::set_profiled_sdrive_gains(pid new_gains) {
     profiled_sdrive_gains.kP = new_gains.kP;
     profiled_sdrive_gains.kI = new_gains.kI;
     profiled_sdrive_gains.kD = new_gains.kD;
@@ -1553,7 +1412,7 @@ void Chassis::set_profiled_sdrive_gains(pid new_gains) {
     profiled_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_okapi_sdrive_gains(pid new_gains) {
+void PTOChassis::set_okapi_sdrive_gains(pid new_gains) {
     okapi_sdrive_gains.kP = new_gains.kP;
     okapi_sdrive_gains.kI = new_gains.kI;
     okapi_sdrive_gains.kD = new_gains.kD;
@@ -1561,7 +1420,7 @@ void Chassis::set_okapi_sdrive_gains(pid new_gains) {
     okapi_sdrive_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_heading_gains(pid new_gains) {
+void PTOChassis::set_heading_gains(pid new_gains) {
     heading_gains.kP = new_gains.kP;
     heading_gains.kI = new_gains.kI;
     heading_gains.kD = new_gains.kD;
@@ -1569,7 +1428,7 @@ void Chassis::set_heading_gains(pid new_gains) {
     heading_gains.motor_slew = new_gains.motor_slew;
 }
 
-void Chassis::set_turn_gains(pid new_gains) {
+void PTOChassis::set_turn_gains(pid new_gains) {
     turn_gains.kP = new_gains.kP;
     turn_gains.kI = new_gains.kI;
     turn_gains.kD = new_gains.kD;
@@ -1578,29 +1437,94 @@ void Chassis::set_turn_gains(pid new_gains) {
 }
 
 
+void PTOChassis::pto_move_voltage(int r_voltage, int l_voltage) {
+    r_back->set_motor_mode(e_voltage);
+    r_front->set_motor_mode(e_voltage);
+    l_back->set_motor_mode(e_voltage);
+    l_front->set_motor_mode(e_voltage);
+
+    r_back->set_voltage(r_voltage);
+    r_front->set_voltage(r_voltage);
+    l_back->set_voltage(l_voltage);
+    l_front->set_voltage(l_voltage);
+
+    if(!pto_state) {  // extra motors enabled use them
+        r_extra->set_motor_mode(e_voltage);
+        l_extra->set_motor_mode(e_voltage);
+
+        r_extra->set_voltage(r_voltage);
+        l_extra->set_voltage(l_voltage);
+    }
+}
+
+
+void PTOChassis::pto_move_velocity(int r_velocity, int l_velocity) {
+    r_back->set_motor_mode(e_builtin_velocity_pid);
+    r_front->set_motor_mode(e_builtin_velocity_pid);
+    l_back->set_motor_mode(e_builtin_velocity_pid);
+    l_front->set_motor_mode(e_builtin_velocity_pid);
+
+    r_back->move_velocity(r_velocity);
+    r_front->move_velocity(r_velocity);
+    l_back->move_velocity(l_velocity);
+    l_front->move_velocity(l_velocity);
+
+    if(!pto_state) {  // extra motors enabled use them
+        r_extra->set_motor_mode(e_builtin_velocity_pid);
+        l_extra->set_motor_mode(e_builtin_velocity_pid);
+
+        r_extra->move_velocity(r_velocity);
+        l_extra->move_velocity(l_velocity);
+    }
+}
+
+
+void PTOChassis::toggle_pto() {
+    pto_state = !pto_state;
+    if(pto_state) {
+        pto_enable_rings();
+    } else {
+        pto_enable_drive();
+    }
+
+}
+
+void PTOChassis::pto_enable_drive() {
+    pto1->set_value(false);
+    pto2->set_value(false);
+}
+
+void PTOChassis::pto_enable_rings() {
+    pto1->set_value(true);
+    pto2->set_value(true);
+}
+
+
+
+
 /**
  * sets scaled voltage of each drive motor
  */
-void Chassis::move( int voltage ) {
-    for(Motor* motor : r_motors) {
-        motor->move(voltage);
-    }
-    for(Motor* motor : l_motors) {
-        motor->move(voltage);
-    }
+void PTOChassis::move( int voltage ) {
+    r_back->move(voltage);
+    r_front->move(voltage);
+    l_back->move(voltage);
+    l_front->move(voltage);
+    r_extra->move(voltage);
+    l_extra->move(voltage);
 }
 
 
 /**
  * sets a new brakemode for each drive motor
  */
-void Chassis::set_brake_mode( pros::motor_brake_mode_e_t new_brake_mode ) {
-    for(Motor* motor : r_motors) {
-        motor->set_brake_mode(new_brake_mode);
-    }
-    for(Motor* motor : l_motors) {
-        motor->set_brake_mode(new_brake_mode);
-    }
+void PTOChassis::set_brake_mode( pros::motor_brake_mode_e_t new_brake_mode ) {
+    r_back->set_brake_mode(new_brake_mode);
+    r_front->set_brake_mode(new_brake_mode);
+    l_back->set_brake_mode(new_brake_mode);
+    l_front->set_brake_mode(new_brake_mode);
+    r_extra->set_brake_mode(new_brake_mode);
+    l_extra->set_brake_mode(new_brake_mode);
 }
 
 
@@ -1610,13 +1534,13 @@ void Chassis::set_brake_mode( pros::motor_brake_mode_e_t new_brake_mode ) {
  * sets all chassis motors to the opposite direction that they were facing
  * ie. reversed is now normal and normal is now reversed
  */
-void Chassis::change_direction()  {
-    for(Motor* motor : r_motors) {
-        motor->reverse_motor();
-    }
-    for(Motor* motor : l_motors) {
-        motor->reverse_motor();
-    }
+void PTOChassis::change_direction()  {
+    r_back->reverse_motor();
+    r_front->reverse_motor();
+    l_back->reverse_motor();
+    l_front->reverse_motor();
+    r_extra->reverse_motor();
+    l_extra->reverse_motor();
 }
 
 
@@ -1626,15 +1550,20 @@ void Chassis::change_direction()  {
  * sets slew to enabled for each motor
  * sets the rate of the slew to the rate parameter
  */
-void Chassis::enable_slew( int rate /*120*/ ) {
-    for(Motor* motor : r_motors) {
-        motor->enable_slew();
-        motor->set_slew(rate);
-    }
-    for(Motor* motor : l_motors) {
-        motor->enable_slew();
-        motor->set_slew(rate);
-    }
+void PTOChassis::enable_slew( int rate /*120*/ ) {
+    r_back->enable_slew();
+    r_front->enable_slew();
+    l_back->enable_slew();
+    l_front->enable_slew();
+    r_extra->enable_slew();
+    l_extra->enable_slew();
+
+    r_back->set_slew(rate);
+    r_front->set_slew(rate);
+    l_back->set_slew(rate);
+    l_front->set_slew(rate);
+    r_extra->set_slew(rate);
+    l_extra->set_slew(rate);
 }
 
 
@@ -1643,17 +1572,17 @@ void Chassis::enable_slew( int rate /*120*/ ) {
 /**
  * sets slew to disabled for each motor
  */
-void Chassis::disable_slew( ) {
-    for(Motor* motor : r_motors) {
-        motor->disable_slew();
-    }
-    for(Motor* motor : l_motors) {
-        motor->disable_slew();
-    }
+void PTOChassis::disable_slew( ) {
+    r_back->disable_slew();
+    r_front->disable_slew();
+    l_back->disable_slew();
+    l_front->disable_slew();
+    r_extra->disable_slew();
+    l_extra->disable_slew();
 }
 
 
-void Chassis::wait_until_finished(int uid) {
+void PTOChassis::wait_until_finished(int uid) {
     while(std::find(commands_finished.begin(), commands_finished.end(), uid) == commands_finished.end()) {
         pros::delay(10);
     }
@@ -1663,7 +1592,7 @@ void Chassis::wait_until_finished(int uid) {
 }
 
 
-bool Chassis::is_finished(int uid) {
+bool PTOChassis::is_finished(int uid) {
     if(std::find(commands_finished.begin(), commands_finished.end(), uid) == commands_finished.end()) {
         return false;  // command is not finished because it is not in the list
     }

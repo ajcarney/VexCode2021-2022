@@ -18,12 +18,13 @@ namespace Motors
     Motor back_left    {BL_MOTOR, CHASSIS_GEARSET, BL_REVERSED};
     Motor mid_left     {ML_MOTOR, CHASSIS_GEARSET, ML_REVERSED};
     Motor front_left   {FL_MOTOR, CHASSIS_GEARSET, FL_REVERSED};
-    Motor mogo_lift    {MOGO_MOTOR, MOGO_GEARSET, MOGO_REVERSED};
-    Motor lift         {LIFT_MOTOR, LIFT_GEARSET, LIFT_REVERSED};
+    Motor lift1        {LIFT2_MOTOR, LIFT_GEARSET, LIFT1_REVERSED};
+    Motor lift2        {LIFT1_MOTOR, LIFT_GEARSET, LIFT2_REVERSED};
 
     pros::ADIDigitalOut piston1 {PISTON1_MOTOR};
     pros::ADIDigitalOut piston2 {PISTON2_MOTOR};
     pros::ADIDigitalOut piston3 {PISTON3_MOTOR};
+    pros::ADIDigitalOut piston4 {PISTON4_MOTOR};
 
     double chassis_gear_ratio = 3 / 5;
 
@@ -34,8 +35,8 @@ namespace Motors
         &back_left,
         &mid_right,
         &mid_left,
-        &lift,
-        &mogo_lift,
+        &lift1,
+        &lift2,
     };
 
     std::array<std::string, 8> motor_names_array = {

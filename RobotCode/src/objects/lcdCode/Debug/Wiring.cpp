@@ -65,8 +65,8 @@ Wiring::Wiring()
             "back left       (? RPM) - " + std::to_string(BL_MOTOR) + "\n"
             "mid left        (? RPM) - " + std::to_string(ML_MOTOR) + "\n"
             "front left      (? RPM) - " + std::to_string(FL_MOTOR) + "\n"
-            "mogo            (? RPM) - " + std::to_string(MOGO_MOTOR) + "\n"
-            "lift            (? RPM) - " + std::to_string(LIFT_MOTOR) + "\n"
+            "lift1           (? RPM) - " + std::to_string(LIFT1_MOTOR) + "\n"
+            "lift2           (? RPM) - " + std::to_string(LIFT2_MOTOR) + "\n"
     );
 
     lv_label_set_text(motor_info, motors_text.c_str());

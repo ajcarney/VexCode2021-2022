@@ -26,8 +26,8 @@ namespace Motors
     extern Motor back_left;
     extern Motor mid_right;
     extern Motor mid_left;
-    extern Motor lift;
-    extern Motor mogo_lift;
+    extern Motor lift1;
+    extern Motor lift2;
 
     extern pros::ADIDigitalOut piston1;
     extern pros::ADIDigitalOut piston2;

@@ -20,19 +20,44 @@ std::vector<int> LiftController::commands_finished;
 std::atomic<bool> LiftController::command_start_lock = ATOMIC_VAR_INIT(false);
 std::atomic<bool> LiftController::command_finish_lock = ATOMIC_VAR_INIT(false);
 
-Motor* LiftController::lift_motor;
+std::vector<Motor*> LiftController::motors;
 
 pid LiftController::gains = {0.77, 0.000002, 7, INT32_MAX, INT32_MAX};
 
 
 LiftController::LiftController(Motor &motor) {
-    lift_motor = &motor;
+    motors.clear();
+    motors.push_back(&motor);
 
-    lift_motor->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    for(Motor* m : motors) {
+        m->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+        m->set_motor_mode(e_voltage);
+        m->disable_slew();
+    }
 
-    lift_motor->set_motor_mode(e_voltage);
+    for(int i = 0; i<(sizeof(Configuration::lift_setpoints) / sizeof(Configuration::lift_setpoints[0])); i++) {
+        setpoints.push_back(Configuration::lift_setpoints[i]);
+    }
 
-    lift_motor->disable_slew();
+    if(num_instances == 0 || thread == NULL) {
+        thread = new pros::Task( lift_motion_task, (void*)NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "lift_thread");
+    }
+
+    num_instances += 1;
+}
+
+
+LiftController::LiftController(Motor& lift1, Motor& lift2) {
+    motors.clear();
+    motors.push_back(&lift1);
+    motors.push_back(&lift2);
+
+    for(Motor* m : motors) {
+        m->set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+        m->set_motor_mode(e_voltage);
+        m->disable_slew();
+    }
+
 
     for(int i = 0; i<(sizeof(Configuration::lift_setpoints) / sizeof(Configuration::lift_setpoints[0])); i++) {
         setpoints.push_back(Configuration::lift_setpoints[i]);
@@ -74,13 +99,19 @@ void LiftController::lift_motion_task(void*) {
         // execute command
         switch(action.command) {
             case e_start_up: {
-                lift_motor->set_voltage(12000);
+                for(Motor* m : motors) {
+                    m->set_voltage(12000);
+                }
                 break;
             } case e_start_down: {
-                lift_motor->set_voltage(-12000);
+                for(Motor* m : motors) {
+                    m->set_voltage(-12000);
+                }
                 break;
             } case e_stop: {
-                lift_motor->set_voltage(0);
+                for(Motor* m : motors) {
+                    m->set_voltage(0);
+                }
                 break;
             } case e_move_to: {
                 double prev_velocity = 0;
@@ -92,9 +123,11 @@ void LiftController::lift_motion_task(void*) {
 
                 int current_time = pros::millis();
                 int start_time = current_time;
-                
-                lift_motor->set_motor_mode(e_builtin_velocity_pid);
-                lift_motor->disable_driver_control();
+
+                for(Motor* m : motors) {
+                    m->set_motor_mode(e_builtin_velocity_pid);
+                    m->disable_driver_control();
+                }
 
                 do {
                     int dt = pros::millis() - current_time;
@@ -154,9 +187,9 @@ void LiftController::lift_motion_task(void*) {
                         entry.content = (
                             "[INFO] " + std::string("CHASSIS_PID_TURN")
                             + ", Time: " + std::to_string(pros::millis())
-                            + ", Actual_Vol: " + std::to_string(lift_motor->get_actual_voltage())
-                            + ", Brake: " + std::to_string(lift_motor->get_brake_mode())
-                            + ", Gear: " + std::to_string(lift_motor->get_gearset())
+                            + ", Actual_Vol: " + std::to_string(motors.at(0)->get_actual_voltage())
+                            + ", Brake: " + std::to_string(motors.at(0)->get_brake_mode())
+                            + ", Gear: " + std::to_string(motors.at(0)->get_gearset())
                             + ", i_max: " + std::to_string(gains.i_max)
                             + ", I: " + std::to_string(integral)
                             + ", kD: " + std::to_string(gains.kD)
@@ -168,7 +201,7 @@ void LiftController::lift_motion_task(void*) {
                             + ", time out time: " + std::to_string(start_time + action.args.timeout)
                             + ", error difference: " + std::to_string(error_difference)
                             + ", over slew: " + std::to_string(over_slew)
-                            + ", Actual_Vel: " + std::to_string(lift_motor->get_actual_velocity())
+                            + ", Actual_Vel: " + std::to_string(motors.at(0)->get_actual_velocity())
                         );
                         entry.stream = "clog";
                         logger.add(entry);
@@ -185,20 +218,29 @@ void LiftController::lift_motion_task(void*) {
                         // && l_velocity < 2
                         // && r_velocity < 2
                     ) {  // velocity change has been minimal, so stop
-                        lift_motor->set_motor_mode(e_voltage);
-                        lift_motor->set_voltage(0);
+                        for(Motor* m : motors) {
+                            m->set_motor_mode(e_voltage);
+                            m->set_voltage(0);
+                        }
                         break; // end before timeout
                     }
 
-                    lift_motor->move_velocity(abs_velocity);
+                    for(Motor* m : motors) {
+                        m->move_velocity(abs_velocity);
+                        m->set_voltage(0);
+                    }
 
                     std::cout << abs_velocity << "\n";
 
                     pros::delay(10);
                 } while ( pros::millis() < (start_time + action.args.timeout) );
-                lift_motor->set_motor_mode(e_voltage);
-                lift_motor->enable_driver_control();
-                
+
+                for(Motor* m : motors) {
+                    m->set_motor_mode(e_voltage);
+                    m->set_voltage(0);
+                    m->enable_driver_control();
+                }
+
                 break;
             }
         }
@@ -214,7 +256,7 @@ int LiftController::send_command(lift_command command, lift_args args /*{}*/) {
     lift_action action;
     action.command = command;
     action.args = args;
-    action.uid = pros::millis() + lift_motor->get_actual_voltage();
+    action.uid = pros::millis() + motors.at(0)->get_actual_voltage();
     command_queue.push(action);
     command_start_lock.exchange( false ); //release lock
 
@@ -230,7 +272,7 @@ int LiftController::send_command(lift_command command, lift_args args /*{}*/) {
  * caps the max and min and does not wrap back around
  */
 int LiftController::cycle_setpoint(int direction, bool asynch) {
-    int current_pot_value = lift_motor->get_encoder_position();  // TODO: if you use a potentiometer set this to the pot value
+    int current_pot_value = Sensors::lift_potentiometer.get_raw_value();  // TODO: if you use a potentiometer set this to the pot value
     int target_set_point;
 
     std::vector<int> sorted_setpoints;
