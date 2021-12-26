@@ -121,6 +121,9 @@ class PTOChassis
 
         static void pto_move_voltage(int r_voltage, int l_voltage);
         static void pto_move_velocity(int r_velocity, int l_velocity);
+        void pto_user_move(int r_voltage, int l_voltage);
+        void start_run_rings(int voltage=12000);
+        void stop_run_rings();
         void toggle_pto();
         void pto_enable_drive();
         void pto_enable_rings();

@@ -1479,6 +1479,52 @@ void PTOChassis::pto_move_velocity(int r_velocity, int l_velocity) {
 }
 
 
+void PTOChassis::pto_user_move(int r_voltage, int l_voltage) {
+    r_back->set_motor_mode(e_voltage);
+    r_front->set_motor_mode(e_voltage);
+    l_back->set_motor_mode(e_voltage);
+    l_front->set_motor_mode(e_voltage);
+
+    r_back->user_move(r_voltage);
+    r_front->user_move(r_voltage);
+    l_back->user_move(l_voltage);
+    l_front->user_move(l_voltage);
+
+    if(!pto_state) {  // extra motors enabled use them
+        r_extra->set_motor_mode(e_voltage);
+        l_extra->set_motor_mode(e_voltage);
+
+        r_extra->user_move(r_voltage);
+        l_extra->user_move(l_voltage);
+    }
+}
+
+
+void PTOChassis::start_run_rings(int voltage) {  // this function does nothing if pto is not shifted to rings
+    if(pto_state) {  // rings enabled so run them
+        r_extra->set_motor_mode(e_voltage);
+        l_extra->set_motor_mode(e_voltage);
+
+        r_extra->set_voltage(voltage);
+        l_extra->set_voltage(voltage);
+    }
+}
+
+
+void PTOChassis::stop_run_rings() {  // this function does nothing if pto is not shifted to rings
+    if(pto_state) {  // rings enabled so stop running them
+        r_extra->set_motor_mode(e_voltage);
+        l_extra->set_motor_mode(e_voltage);
+
+        r_extra->set_voltage(0);
+        l_extra->set_voltage(0);
+    }
+}
+
+
+
+
+
 void PTOChassis::toggle_pto() {
     pto_state = !pto_state;
     if(pto_state) {

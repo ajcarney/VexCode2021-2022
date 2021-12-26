@@ -227,7 +227,6 @@ void LiftController::lift_motion_task(void*) {
 
                     for(Motor* m : motors) {
                         m->move_velocity(abs_velocity);
-                        m->set_voltage(0);
                     }
 
                     std::cout << abs_velocity << "\n";

@@ -18,6 +18,7 @@
 #include "objects/motors/MotorThread.hpp"
 #include "objects/position_tracking/PositionTracker.hpp"
 #include "objects/subsystems/chassis.hpp"
+#include "objects/subsystems/pto_chassis.hpp"
 #include "objects/subsystems/MogoController.hpp"
 #include "objects/subsystems/LiftController.hpp"
 #include "objects/lcdCode/DriverControl/AutonomousLCD.hpp"
@@ -60,7 +61,7 @@ void Autons::deploy() {
 
 
 void Autons::pid_straight_drive() {
-    Chassis chassis( Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    PTOChassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Motors::piston3, Motors::piston4, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     LiftController lift(Motors::lift1, Motors::lift2);
     PositionTracker* tracker = PositionTracker::get_instance();
     tracker->start_thread();
@@ -70,6 +71,26 @@ void Autons::pid_straight_drive() {
     chassis.set_turn_gains({4, 0.0001, 20, INT32_MAX, INT32_MAX});
     chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});
 
+    chassis.pto_enable_drive();
+    chassis.okapi_pid_straight_drive(1000);
+
+    chassis.pto_enable_rings();  // make sure to call this function before running rings otherwise rings will not run
+    chassis.start_run_rings();
+    pros::delay(1000);
+    chassis.stop_run_rings();
+
+    chassis.set_okapi_sdrive_gains({0.002, 0.0001, 0, INT32_MAX, INT32_MAX});  // change pid constants because driving backwards with less motors
+    chassis.okapi_pid_straight_drive(-1000);  // this drives backwards without the extra motors because the enable drive function was not called
+
+    chassis.pto_enable_drive();  // enable the extra motors again
+    chassis.set_okapi_sdrive_gains({0.001, 0.0001, 0, INT32_MAX, INT32_MAX});  // change pid constants back to default because 6 motors are enabled again
+
+
+    Motors::piston5.set_value(false);  // do something to the claw (idk if this is open or close)
+    Motors::piston6.set_value(false);
+
+    Motors::piston1.set_value(true);  // do something to the claw (idk if this is open or close)
+    Motors::piston2.set_value(true);  // do something to the mogo (idk if this is open or close)
 
 //  chassis.turn_left(51.5, 300, 1000, false); //Turn PID test
 //  int uid = chassis.okapi_pid_straight_drive(1500, 10000, 6000, false, 0); //Drives foward to test pid_straight_drive

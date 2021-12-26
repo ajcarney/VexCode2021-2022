@@ -16,7 +16,7 @@
 #include "../include/main.h"
 
 #include "objects/lcdCode/gui.hpp"
-#include "objects/subsystems/chassis.hpp"
+#include "objects/subsystems/pto_chassis.hpp"
 #include "objects/subsystems/LiftController.hpp"
 #include "objects/subsystems/MogoController.hpp"
 #include "objects/controller/controller.hpp"
@@ -37,19 +37,20 @@ void driver_control(void*)
 
     Controller controllers;
 
-    Chassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_right, Motors::mid_left, Sensors::left_encoder, Sensors::right_encoder, CHASSIS_WIDTH, CHASSIS_GEAR_RATIO);
-    LiftController lift{Motors::lift1, Motors::lift2};
+    PTOChassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Motors::piston3, Motors::piston4, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    LiftController lift(Motors::lift1, Motors::lift2);
 
     int left_analog_y = 0;
     int right_analog_y = 0;
 
-    bool p1_state = false;
-    bool p2_state = false;
-    bool p3_state = false;
+    bool mogo_state = false;
+    bool claw_state = false;
     Motors::piston1.set_value(false);
     Motors::piston2.set_value(false);
-    Motors::piston3.set_value(false);
+    Motors::piston5.set_value(false);
+    Motors::piston6.set_value(false);
 
+    chassis.pto_enable_drive();
 
     const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
 
@@ -69,31 +70,23 @@ void driver_control(void*)
             right_analog_y = controllers.master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
         }
 
-        // float corrected_speed = ( .000043326431866017 * std::pow( leftDriveSpeed, 3 ) ) + ( 0.29594689028631 * leftDriveSpeed);  // cubic drive equation
-        Motors::front_left.user_move(left_analog_y);
-        Motors::mid_left.user_move(left_analog_y);
-        Motors::back_left.user_move(left_analog_y);
+        chassis.pto_user_move(right_analog_y, left_analog_y);  // use or don't use the extra motors based on if pto is enabled
 
-        // float corrected_speed = ( .000043326431866017 * std::pow( rightDriveSpeed, 3 ) ) + ( 0.29594689028631 * rightDriveSpeed);  // cubic drive equation
-        Motors::front_right.user_move(right_analog_y);
-        Motors::mid_right.user_move(right_analog_y);
-        Motors::back_right.user_move(right_analog_y);
-
-
-    // piston movement
-        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)) {  // toggle piston 1
-            p1_state = !p1_state;
-            Motors::piston1.set_value(p1_state);
+    // pto shifting
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
+            chassis.pto_enable_rings();
+        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+            chassis.pto_enable_drive();
         }
 
-        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // toggle piston 2
-            p2_state = !p2_state;
-            Motors::piston2.set_value(p2_state);
-        }
 
-        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {    // toggle piston 3
-            p3_state = !p3_state;
-            Motors::piston3.set_value(p3_state);
+    // ring movement
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1)) {
+            chassis.start_run_rings(12000);
+        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L2)) {
+            chassis.start_run_rings(-12000);
+        } else {
+            chassis.stop_run_rings();
         }
 
     // lift movement
@@ -106,20 +99,37 @@ void driver_control(void*)
         }
 
     // mogo movement
-        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1)) {
-            // mogo.move_up();
-        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L2)) {
-            // mogo.move_down();
-        } else {
-            // mogo.stop();
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_UP)) {
+            Motors::piston1.set_value(true);
+            Motors::piston2.set_value(true);
+
+            mogo_state = true;
+        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+            Motors::piston1.set_value(false);
+            Motors::piston2.set_value(false);
+
+            mogo_state = false;
+        }
+
+    // claw movement
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
+            if(claw_state) {
+                Motors::piston5.set_value(false);
+                Motors::piston6.set_value(false);
+                claw_state = false;
+            } else {
+                Motors::piston5.set_value(true);
+                Motors::piston6.set_value(true);
+                claw_state = true;
+            }
         }
 
     // misc. functions
-        if ( controllers.master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN) ) {
-            autons.deploy();
-        }
+        // if ( controllers.master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN) ) {
+        //     autons.deploy();
+        // }
 
-        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_UP) && controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_Y) && controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_LEFT) && controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_A)) {
             autons.run_autonomous();
         }
 
