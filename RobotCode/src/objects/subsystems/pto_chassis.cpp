@@ -518,6 +518,7 @@ void PTOChassis::t_pid_straight_drive(chassis_params args) {
             && previous_r_velocities.size() == velocity_history
             && left_velocity < 2
             && right_velocity < 2
+            && pros::millis() > start_time + 500
         ) {
             break; // end before timeout
         }
@@ -604,6 +605,7 @@ void PTOChassis::t_okapi_pid_straight_drive(chassis_params args) {
             && previous_r_velocities.size() == velocity_history
             && r_front->get_actual_velocity() < 2
             && l_front->get_actual_velocity() < 2
+            && pros::millis() > start_time + 500
         ) {
             break; // end before timeout
         }
@@ -787,6 +789,7 @@ void PTOChassis::t_profiled_straight_drive(chassis_params args) {
             && previous_r_velocities.size() == velocity_history
             && std::abs(velocity_l) < 2
             && std::abs(velocity_r) < 2
+            && pros::millis() > start_time + 500
         ) {
             break; // end before timeout
         }
