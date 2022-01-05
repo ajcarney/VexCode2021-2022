@@ -53,12 +53,12 @@
 #define LIFT2_REVERSED            1
 
 
-#define PISTON1_MOTOR            'C'  // 1 and 2 are for mogo
-#define PISTON2_MOTOR            'B'
-#define PISTON3_MOTOR            'Z'  // 3 and 4 are for pto
+#define PISTON1_MOTOR            'Z'  // 1 and 2 are for mogo
+#define PISTON2_MOTOR            'Z'
+#define PISTON3_MOTOR            'D'  // 3 and 4 are for pto
 #define PISTON4_MOTOR            'Z'
-#define PISTON5_MOTOR            'D'  // 5 and 6 are for claw
-#define PISTON6_MOTOR            'A'
+#define PISTON5_MOTOR            'C'  // 5 and 6 are for claw
+#define PISTON6_MOTOR            'B'
 
 // @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges
 #define CHASSIS_GEARSET           pros::E_MOTOR_GEARSET_06
@@ -66,14 +66,14 @@
 #define MOGO_GEARSET              pros::E_MOTOR_GEARSET_36
 
 
-#define LEFT_ENC_TOP_PORT        'B'
-#define LEFT_ENC_BOTTOM_PORT     'C'
+#define LEFT_ENC_TOP_PORT        'E'
+#define LEFT_ENC_BOTTOM_PORT     'F'
 #define RIGHT_ENC_TOP_PORT       'H'
 #define RIGHT_ENC_BOTTOM_PORT    'G'
 #define STRAFE_ENC_TOP_PORT      'Z'
 #define STRAFE_ENC_BOTTOM_PORT   'Z'
 #define DETECTOR_MIDDLE_PORT     'Z'
-#define LIFT_POTENTIOMETER_PORT  'A'
+#define LIFT_POTENTIOMETER_PORT  'Z'
 #define MOGO_POTENTIOMETER_PORT  'Z'
 
 #define DETECTOR_BOTTOM_PORT     'Z'
