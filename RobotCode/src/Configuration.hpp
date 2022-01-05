@@ -33,15 +33,15 @@
 
 #include "main.h"
 
-#define BR_MOTOR                  19
-#define MR_MOTOR                  20
-#define FR_MOTOR                  10
-#define BL_MOTOR                  14
-#define ML_MOTOR                  15
-#define FL_MOTOR                  2
-#define MOGO_MOTOR                13
-#define LIFT1_MOTOR               1
-#define LIFT2_MOTOR               11
+#define BR_MOTOR                  12
+#define MR_MOTOR                  14
+#define FR_MOTOR                  15
+#define BL_MOTOR                  8
+#define ML_MOTOR                  1
+#define FL_MOTOR                  5
+#define MOGO_MOTOR                19
+#define LIFT1_MOTOR               4
+#define LIFT2_MOTOR               16
 
 #define BR_REVERSED               0
 #define MR_REVERSED               1
@@ -49,16 +49,16 @@
 #define BL_REVERSED               1
 #define ML_REVERSED               0
 #define FL_REVERSED               1
-#define LIFT1_REVERSED            1
-#define LIFT2_REVERSED            0
+#define LIFT1_REVERSED            0
+#define LIFT2_REVERSED            1
 
 
 #define PISTON1_MOTOR            'Z'  // 1 and 2 are for mogo
 #define PISTON2_MOTOR            'Z'
-#define PISTON3_MOTOR            'Z'  // 3 is for pto
+#define PISTON3_MOTOR            'D'  // 3 is for pto
 #define PISTON4_MOTOR            'Z'
-#define PISTON5_MOTOR            'Z'  // 5 is for claw, in expander
-#define PISTON6_MOTOR            'Z'
+#define PISTON5_MOTOR            'C'  // 5 is for claw, in expander
+#define PISTON6_MOTOR            'B'
 
 // @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges
 #define CHASSIS_GEARSET           pros::E_MOTOR_GEARSET_06
@@ -66,10 +66,10 @@
 #define MOGO_GEARSET              pros::E_MOTOR_GEARSET_36
 
 
-#define LEFT_ENC_TOP_PORT        'Z'
-#define LEFT_ENC_BOTTOM_PORT     'Z'
-#define RIGHT_ENC_TOP_PORT       'Z'
-#define RIGHT_ENC_BOTTOM_PORT    'Z'
+#define LEFT_ENC_TOP_PORT        'E'
+#define LEFT_ENC_BOTTOM_PORT     'F'
+#define RIGHT_ENC_TOP_PORT       'H'
+#define RIGHT_ENC_BOTTOM_PORT    'G'
 #define STRAFE_ENC_TOP_PORT      'Z'
 #define STRAFE_ENC_BOTTOM_PORT   'Z'
 #define DETECTOR_MIDDLE_PORT     'Z'
@@ -79,10 +79,10 @@
 #define DETECTOR_BOTTOM_PORT     'Z'
 #define DETECTOR_TOP_PORT        'Z'
 
-#define OPTICAL_PORT              12
-#define DISTANCE_PORT             13
-#define IMU_PORT                  9
-#define EXPANDER_PORT             16
+#define OPTICAL_PORT              10
+#define DISTANCE_PORT             9
+#define IMU_PORT                  2
+#define EXPANDER_PORT             21
 
 #define LED_R                     'Z'
 #define LED_G                     'Z'
