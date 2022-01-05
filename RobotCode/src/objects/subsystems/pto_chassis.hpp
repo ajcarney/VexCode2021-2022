@@ -57,8 +57,7 @@ class PTOChassis
         static Motor* l_front;
         static Motor* l_extra;
 
-        static pros::ADIDigitalOut* pto1;
-        static pros::ADIDigitalOut* pto2;
+        static pros::ADIDigitalOut* pto;
 
         static Encoder* left_encoder;
         static Encoder* right_encoder;
@@ -98,7 +97,7 @@ class PTOChassis
 
 
     public:
-        PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &extra_left, Motor &extra_right, pros::ADIDigitalOut& piston1, pros::ADIDigitalOut& piston2, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
+        PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &extra_left, Motor &extra_right, pros::ADIDigitalOut& piston1, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing=1, double wheel_size=3.25);
         ~PTOChassis();
 
         int pid_straight_drive(double encoder_ticks, int relative_heading=0, int max_velocity=450, int timeout=INT32_MAX, bool asynch=false, bool correct_heading=true, double slew=0.2, bool log_data=false);

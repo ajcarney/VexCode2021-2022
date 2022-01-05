@@ -37,7 +37,7 @@ void driver_control(void*)
 
     Controller controllers;
 
-    PTOChassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Motors::piston3, Motors::piston4, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    PTOChassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Motors::piston3, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     LiftController lift(Motors::lift1, Motors::lift2);
 
     int left_analog_y = 0;
@@ -45,10 +45,9 @@ void driver_control(void*)
 
     bool mogo_state = false;
     bool claw_state = false;
-    Motors::piston1.set_value(false);
+    Motors::piston1.set_value(false);  // mogo
     Motors::piston2.set_value(false);
-    Motors::piston5.set_value(false);
-    Motors::piston6.set_value(false);
+    Motors::piston5.set_value(false);  // claw
 
     chassis.pto_enable_drive();
 
@@ -73,10 +72,8 @@ void driver_control(void*)
         chassis.pto_user_move(right_analog_y, left_analog_y);  // use or don't use the extra motors based on if pto is enabled
 
     // pto shifting
-        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
-            chassis.pto_enable_rings();
-        } else if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
-            chassis.pto_enable_drive();
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+            chassis.toggle_pto();
         }
 
 
@@ -115,11 +112,9 @@ void driver_control(void*)
         if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
             if(claw_state) {
                 Motors::piston5.set_value(false);
-                Motors::piston6.set_value(false);
                 claw_state = false;
             } else {
                 Motors::piston5.set_value(true);
-                Motors::piston6.set_value(true);
                 claw_state = true;
             }
         }

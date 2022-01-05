@@ -55,9 +55,9 @@
 
 #define PISTON1_MOTOR            'Z'  // 1 and 2 are for mogo
 #define PISTON2_MOTOR            'Z'
-#define PISTON3_MOTOR            'Z'  // 3 and 4 are for pto
+#define PISTON3_MOTOR            'Z'  // 3 is for pto
 #define PISTON4_MOTOR            'Z'
-#define PISTON5_MOTOR            'Z'  // 5 and 6 are for claw
+#define PISTON5_MOTOR            'Z'  // 5 is for claw, in expander
 #define PISTON6_MOTOR            'Z'
 
 // @nolan4s: see https://pros.cs.purdue.edu/v5/api/cpp/motors.html#pros-motor-gearset-e-t for setting it to different gear cartridges

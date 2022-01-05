@@ -28,8 +28,7 @@ Motor* PTOChassis::l_back;
 Motor* PTOChassis::l_front;
 Motor* PTOChassis::l_extra;
 
-pros::ADIDigitalOut* PTOChassis::pto1;
-pros::ADIDigitalOut* PTOChassis::pto2;
+pros::ADIDigitalOut* PTOChassis::pto;
 
 bool PTOChassis::pto_state;
 
@@ -47,7 +46,7 @@ pid PTOChassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
 pid PTOChassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
 
 
-PTOChassis::PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &extra_left, Motor &extra_right, pros::ADIDigitalOut& piston1, pros::ADIDigitalOut& piston2, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing, double wheel_size)
+PTOChassis::PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &extra_left, Motor &extra_right, pros::ADIDigitalOut& piston1, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing, double wheel_size)
 {
     r_back = &back_right;
     r_front = &front_right;
@@ -56,8 +55,7 @@ PTOChassis::PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, 
     l_front = &front_left;
     l_extra = &extra_left;
 
-    pto1 = &piston1;
-    pto2 = &piston2;
+    pto = &piston1;
 
     left_encoder = &l_encoder;
     right_encoder = &r_encoder;
@@ -1526,8 +1524,7 @@ void PTOChassis::stop_run_rings() {  // this function does nothing if pto is not
 
 
 void PTOChassis::toggle_pto() {
-    pto_state = !pto_state;
-    if(pto_state) {
+    if(!pto_state) {  // pto state is false meaning drive is enabled so enable rings
         pto_enable_rings();
     } else {
         pto_enable_drive();
@@ -1536,13 +1533,13 @@ void PTOChassis::toggle_pto() {
 }
 
 void PTOChassis::pto_enable_drive() {
-    pto1->set_value(false);
-    pto2->set_value(false);
+    pto_state = false;
+    pto->set_value(false);
 }
 
 void PTOChassis::pto_enable_rings() {
-    pto1->set_value(true);
-    pto2->set_value(true);
+    pto_state = true;
+    pto->set_value(true);
 }
 
 

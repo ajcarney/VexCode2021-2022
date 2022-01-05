@@ -61,7 +61,7 @@ void Autons::deploy() {
 
 
 void Autons::pid_straight_drive() {
-    PTOChassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Motors::piston3, Motors::piston4, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
+    PTOChassis chassis(Motors::front_left, Motors::front_right, Motors::back_left, Motors::back_right, Motors::mid_left, Motors::mid_right, Motors::piston3, Sensors::left_encoder, Sensors::right_encoder, 16, 3/5);
     LiftController lift(Motors::lift1, Motors::lift2);
     PositionTracker* tracker = PositionTracker::get_instance();
     tracker->start_thread();
