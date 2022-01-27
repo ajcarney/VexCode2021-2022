@@ -22,7 +22,7 @@ std::atomic<bool> LiftController::command_finish_lock = ATOMIC_VAR_INIT(false);
 
 std::vector<Motor*> LiftController::motors;
 
-pid LiftController::gains = {0.77, 0.000002, 7, INT32_MAX, INT32_MAX};
+pid LiftController::gains = {0.3, 0.000000, 0, INT32_MAX, INT32_MAX};
 
 
 LiftController::LiftController(Motor &motor) {

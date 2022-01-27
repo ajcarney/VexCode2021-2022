@@ -609,14 +609,14 @@ void PTOChassis::t_okapi_pid_straight_drive(chassis_params args) {
         ) {
             break; // end before timeout
         }
-
+        std::cout << std::get<0>(Sensors::get_average_encoders(l_id, r_id)) << " " << std::get<1>(Sensors::get_average_encoders(l_id, r_id)) << " " << left_voltage << " " << right_voltage << "\n";
         pto_move_voltage(right_voltage, left_voltage);
 
 
         pros::delay(10);
     }
 
-
+    pto_move_voltage(0, 0);
     stop_movement();
 
 
@@ -1491,7 +1491,8 @@ void PTOChassis::pto_user_move(int r_voltage, int l_voltage) {
     l_back->user_move(l_voltage);
     l_front->user_move(l_voltage);
 
-    if(!pto_state) {  // extra motors enabled use them
+    // if pto state is true then robot is in ring mode
+    if(!pto_state) {  // extra motors not enabled use them
         r_extra->set_motor_mode(e_voltage);
         l_extra->set_motor_mode(e_voltage);
 

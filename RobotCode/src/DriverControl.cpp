@@ -43,13 +43,16 @@ void driver_control(void*)
     int left_analog_y = 0;
     int right_analog_y = 0;
 
-    bool mogo_state = false;
+    bool mogo1_state = false;
+    bool mogo2_state = false;
     bool claw_state = false;
+
     Motors::piston1.set_value(false);  // mogo
     Motors::piston2.set_value(false);
     Motors::piston5.set_value(false);  // claw
 
     chassis.pto_enable_drive();
+    bool drive_enabled = true;
 
     const pros::controller_digital_e_t SHIFT_KEY = pros::E_CONTROLLER_DIGITAL_RIGHT; // TODO: set this to the actual shift key
 
@@ -74,13 +77,14 @@ void driver_control(void*)
     // pto shifting
         if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
             chassis.toggle_pto();
+            drive_enabled = !drive_enabled;
         }
 
 
     // ring movement
-        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1)) {
+        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L1) && !drive_enabled) {
             chassis.start_run_rings(12000);
-        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L2)) {
+        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_L2) && !drive_enabled) {
             chassis.start_run_rings(-12000);
         } else {
             chassis.stop_run_rings();
@@ -96,27 +100,23 @@ void driver_control(void*)
         }
 
     // mogo movement
-        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_UP)) {
-            Motors::piston1.set_value(true);
-            Motors::piston2.set_value(true);
-
-            mogo_state = true;
-        } else if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_DOWN)) {
-            Motors::piston1.set_value(false);
-            Motors::piston2.set_value(false);
-
-            mogo_state = false;
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
+            mogo1_state = !mogo1_state;
+            Motors::piston1.set_value(mogo1_state);
+        }
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+            mogo2_state = !mogo2_state;
+            Motors::piston2.set_value(mogo2_state);
         }
 
     // claw movement
-        if(controllers.btn_is_pressing(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
-            if(claw_state) {
-                Motors::piston5.set_value(false);
-                claw_state = false;
-            } else {
-                Motors::piston5.set_value(true);
-                claw_state = true;
-            }
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
+            claw_state = !claw_state;
+            Motors::piston5.set_value(claw_state);
+            Motors::piston4.set_value(claw_state);
+        }
+        if(controllers.master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)) {
+            Motors::piston5.set_value(true);
         }
 
     // misc. functions

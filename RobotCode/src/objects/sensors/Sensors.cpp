@@ -18,7 +18,7 @@
 namespace Sensors
 {
     Encoder right_encoder{RIGHT_ENC_TOP_PORT, RIGHT_ENC_BOTTOM_PORT, false};
-    Encoder left_encoder{LEFT_ENC_TOP_PORT, LEFT_ENC_BOTTOM_PORT, false};
+    Encoder left_encoder{LEFT_ENC_TOP_PORT, LEFT_ENC_BOTTOM_PORT, true};
     Encoder strafe_encoder{STRAFE_ENC_TOP_PORT, STRAFE_ENC_BOTTOM_PORT, true};
 
 //    pros::ADIDigitalIn lift_potentiometer{pros::ext_adi_port_pair_t(EXPANDER_PORT, 'A')};
@@ -27,7 +27,7 @@ namespace Sensors
 
     pros::Imu imu{IMU_PORT};
     bool imu_is_calibrated = false;
-    
+
     AnalogInSensor lift_potentiometer(pros::ext_adi_port_pair_t(EXPANDER_PORT, LIFT_POTENTIOMETER_PORT));
     AnalogInSensor mogo_potentiometer(pros::ext_adi_port_pair_t(EXPANDER_PORT, MOGO_POTENTIOMETER_PORT));
 
