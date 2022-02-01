@@ -39,11 +39,11 @@ double PTOChassis::gear_ratio;
 double PTOChassis::wheel_diameter;
 
 
-pid PTOChassis::pid_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid PTOChassis::profiled_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
-pid PTOChassis::okapi_sdrive_gains = {0.77, 0.000002, 7, INT32_MAX, 0.2};
+pid PTOChassis::pid_sdrive_gains = {1, 0, 0, INT32_MAX, 0.2};
+pid PTOChassis::profiled_sdrive_gains = {1, 0, 0, INT32_MAX, 0.22};
+pid PTOChassis::okapi_sdrive_gains = {1, 0, 0, INT32_MAX, 0.2};
 pid PTOChassis::heading_gains = {0.05, 0, 0, INT32_MAX, INT32_MAX};
-pid PTOChassis::turn_gains = {2.8, 0.0005, 50, INT32_MAX, 15};
+pid PTOChassis::turn_gains = {2.9, 0, 0, INT32_MAX, 15};
 
 
 PTOChassis::PTOChassis(Motor &front_left, Motor &front_right, Motor &back_left, Motor &back_right, Motor &extra_left, Motor &extra_right, pros::ADIDigitalOut& piston1, Encoder &l_encoder, Encoder &r_encoder, double chassis_width, double gearing, double wheel_size)
@@ -618,7 +618,6 @@ void PTOChassis::t_okapi_pid_straight_drive(chassis_params args) {
 
     pto_move_voltage(0, 0);
     stop_movement();
-
 
     right_encoder->forget_position(r_id);  // free up space in the encoders log
     left_encoder->forget_position(l_id);

@@ -68,24 +68,19 @@ void Autons::pid_straight_drive() {
   tracker->enable_imu();
   tracker->set_log_level(0);
   tracker->set_position({0, 0, 0});
-  chassis.set_turn_gains({1.7, 0, 0, INT32_MAX, INT32_MAX});
-  chassis.set_okapi_sdrive_gains({.01, 0.000, 0, INT32_MAX, INT32_MAX});
+  chassis.set_turn_gains({2.9, 0, 0, INT32_MAX, INT32_MAX});
+  chassis.set_okapi_sdrive_gains({1, 0, 0, INT32_MAX, INT32_MAX});
 
-    Motors::piston2.set_value(false);  // do something to the claw (idk if this is open or close)
-    Motors::piston1.set_value(false);  // do something to the claw (idk if this is open or close)
-    chassis.pto_enable_drive();  // make sure to call this function before running rings otherwise rings will not run
-    Motors::piston5.set_value(true);  // do something to the claw (idk if this is open or close)
-    chassis.okapi_pid_straight_drive(1500, 12000, 950, false, 0);
-    Motors::piston5.set_value(false);  // do something to the claw (idk if this is open or close)
-    chassis.okapi_pid_straight_drive(-1500, 12000, 1200, false, 0);
+      chassis.pto_enable_drive();  // make sure to call this function before running rings otherwise rings will not run
+      chassis.okapi_pid_straight_drive(1000, 8000, 10000, false, 0); //Drives backwards into middle mogo
 
 
-    // chassis.pto_enable_drive();
-    // lift.move_to(1200, false);
-    // pros::delay(2000);
-    // lift.move_to(900, false);
-    // pros::delay(2000);
-    // lift.move_to(1500, false);
+    // Motors::piston5.set_value(true);  // do something to the claw (idk if this is open or close)
+    // chassis.okapi_pid_straight_drive(1500, 12000, 950, false, 0);
+    // Motors::piston5.set_value(false);  // do something to the claw (idk if this is open or close)
+    // chassis.okapi_pid_straight_drive(-1500, 12000, 1200, false, 0);
+
+
 
 
 
@@ -143,7 +138,7 @@ void Autons::skills() {
     chassis.pto_enable_drive();  // make sure to call this function before running rings otherwise rings will not run
     chassis.turn_right(7, 300, 2500, false); //Turn PID tes
     Motors::piston5.set_value(true);  // do something to the claw (idk if this is open or close)
-    chassis.okapi_pid_straight_drive(1700, 5000, 2100, false, 0);
+    chassis.okapi_pid_straight_drive(1700, 5000, 21000, false, 0);
     pros::delay(200);
     Motors::piston5.set_value(false);  // do something to the claw (idk if this is open or close)
     pros::delay(50);
@@ -231,8 +226,8 @@ void Autons::win_point() {
   lift.move_to(3400, false, 1000);
   Motors::piston5.set_value(true);  // do something to the claw (idk if this is open or close)
   pros::delay(400);
-  chassis.turn_left(50, 300, 1800, false); //Turn PID test
-  chassis.okapi_pid_straight_drive(3700, 6000, 1200, false, 0);
+  chassis.turn_left(52, 300, 1800, false); //Turn PID test
+  chassis.okapi_pid_straight_drive(3650, 6000, 1100, false, 0);
   pros::delay(250);
   chassis.turn_left(107, 300, 2500, false); //Turn PID test
   chassis.okapi_pid_straight_drive(-2000, 6000, 2000, false, 0);
@@ -272,7 +267,6 @@ void Autons::MidMogoLeft() {
   chassis.okapi_pid_straight_drive(1500, 12000, 950, false, 0);
   Motors::piston5.set_value(false);  // do something to the claw (idk if this is open or close)
   chassis.okapi_pid_straight_drive(-1500, 12000, 1200, false, 0);
-  chassis.turn_left(25, 300, 2000, false);
   chassis.okapi_pid_straight_drive(-900, 6000, 2000, false, 0);
   lift.move_to(4200, false, 1000);
   chassis.turn_left(78, 300, 2000, false);
@@ -416,21 +410,50 @@ void Autons::CenterMogoleft() {
     pros::delay(25);
 
 //Part 3
-lift.move_to(3400, false, 1000);
-pros::delay(250);
-chassis.turn_left(145, 300, 2000, false); //Turn PID test
-pros::delay(50);
-lift.move_to(4200, false, 1000);
-pros::delay(50);
-chassis.okapi_pid_straight_drive(700, 5800, 840, false, 0);
-pros::delay(50);
-lift.move_to(3950, false, 1000);
-pros::delay(50);
-Motors::piston5.set_value(true);  // do something to the claw (idk if this is open or close)
-pros::delay(100);
-lift.move_to(4000, false, 1000);
-pros::delay(50);
-chassis.okapi_pid_straight_drive(-100, 5800, 120, false, 0);
+    lift.move_to(3400, false, 1000);
+    pros::delay(250);
+    chassis.turn_left(145, 300, 2000, false); //Turn PID test
+    pros::delay(50);
+    lift.move_to(4200, false, 1000);
+    pros::delay(50);
+    chassis.okapi_pid_straight_drive(700, 5800, 840, false, 0);
+    pros::delay(50);
+    lift.move_to(3950, false, 1000);
+    chassis.okapi_pid_straight_drive(350, 5800, 420, false, 0);
+    pros::delay(50);
+    Motors::piston5.set_value(true);  // do something to the claw (idk if this is open or close)
+    pros::delay(100);
+    lift.move_to(4200, false, 1000);
+    pros::delay(50);
+    chassis.okapi_pid_straight_drive(-400, 5800, 480, false, 0);
+
+  //Part 4
+    pros::delay(150);
+    chassis.turn_right(43, 300, 2000, false); //Turn PID test
+    pros::delay(150);
+    chassis.okapi_pid_straight_drive(350, 5800, 420, false, 0);
+    pros::delay(100);
+    Motors::piston2.set_value(true);  // do something to the claw (idk if this is open or close)
+    Motors::piston1.set_value(false);  // do something to the claw (idk if this is open or close)
+    pros::delay(100);
+    int uid = chassis.okapi_pid_straight_drive(1550, 5800, 1775, true, 0);
+    lift.move_to(3100, true, 1000);
+    chassis.wait_until_finished(uid);
+    pros::delay(100);
+    chassis.turn_left(79, 300, 2000, false); //Turn PID test
+
+  //Part 5
+    Motors::piston5.set_value(true);  // do something to the claw (idk if this is open or close)
+    chassis.okapi_pid_straight_drive(400, 5800, 480, false, 0);
+    Motors::piston5.set_value(false);  // do something to the claw (idk if this is open or close)
+    lift.move_to(3200, false, 1000);
+    chassis.okapi_pid_straight_drive(-4000, 5800, 4800, false, 0);
+    pros::delay(25);
+
+  //Part 6
+
+  //Part 7
+
 
 }
 
